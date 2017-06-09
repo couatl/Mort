@@ -23,8 +23,6 @@ private slots:
     void about();
     void update();
 
-    void on_pushButton_clicked();
-
 private:
 
     void drawClocks();

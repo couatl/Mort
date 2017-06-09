@@ -30,7 +30,7 @@ void Clock::draw()
         clock.load(":/rsc/images/clock_fail.png");
         break;
     }
-    clock = clock.scaled(this->size());
+    clock = clock.scaled(this->size(), Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
     this->setPixmap(clock);
 }
 

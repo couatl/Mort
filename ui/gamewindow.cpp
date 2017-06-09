@@ -31,7 +31,6 @@ GameWindow::GameWindow(QWidget *parent) :
     }
 
     clockRead(!user.exist());
-//    clockRead(true);
     drawClocks();
 
     connect(ui->actionAbout, &QAction::triggered, this, &GameWindow::about);
@@ -95,7 +94,7 @@ void GameWindow::drawClocks()
     int id = QFontDatabase::addApplicationFont(":/rsc/resources/ITCBLKAD.TTF");
 //    int id = QFontDatabase::addApplicationFont("C:/Mort/Mort/resources/ITCBLKAD.TTF");
     QString font_name = QFontDatabase::applicationFontFamilies(id).at(0);
-    QFont font(font_name, 32, QFont::Normal);
+    QFont font(font_name, 38, QFont::Normal);
 
     QPalette palette;
     palette.setColor(QPalette::WindowText, Qt::white);
@@ -103,9 +102,28 @@ void GameWindow::drawClocks()
     for (int i = 0; i < 3; i++) {
         times[i]->setFont(font);
         times[i]->setPalette(palette);
-        QString time = QString::number(timers[i]->getTime());
-        times[i]->setText(time);
+        QString minutes = QString::number(timers[i]->getTime() / 60);
+        QString seconds = "0";
+        if (timers[i]->getTime() % 60 >= 10)
+        {
+            seconds = QString::number(timers[i]->getTime() % 60);
+        }
+        else
+        {
+            seconds += QString::number(timers[i]->getTime() % 60);
+        }
+
+        times[i]->setText(minutes + ":" + seconds);
+        if (timers[i]->getTime() <= 10)
+            times[i]->setStyleSheet("QLabel { color : red; }");
     }
+    ui->label->setFont(font);
+    ui->label->setPalette(palette);
+    ui->score->setFont(font);
+    ui->score->setPalette(palette);
+
+    ui->label->setText("Good night, " + user.getUsername() + ". They're waiting.");
+    ui->score->setText("Score: " + QString::number(user.getScore()));
 
 //    connect(timers[0], &Timer::timeout, this, &GameWindow::update);
 }
@@ -114,7 +132,7 @@ void GameWindow::drawBackground()
 {
     QPixmap background(":/rsc/images/bg960x540.png");
 //    QPixmap background("C:/Mort/Mort/images/bg960x540.png");
-    background = background.scaled(this->size());
+    background = background.scaled(this->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     QPalette palette;
     palette.setBrush(QPalette::Background, background);
     this->setPalette(palette);
@@ -122,14 +140,14 @@ void GameWindow::drawBackground()
 //    QPixmap shelf("C:/Mort/Mort/images/shelf.png");
 
     QPixmap shelf(":/rsc/images/shelf.png");
-    shelf = shelf.scaled(ui->shelf->size());
+    shelf = shelf.scaled(ui->shelf->size(), Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
     ui->shelf->setPixmap(shelf);
 }
 
 void GameWindow::clockWrite()
 {
-//    QFile File("./clocks.qml");
-    QFile File("/Users/sharlina/Documents/coding/Mort/Mort/docs/clocks.qml");
+    QFile File("clocks.qml");
+//    QFile File("/Users/sharlina/Documents/coding/Mort/Mort/docs/clocks.qml");
 
 
     if (!File.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -169,8 +187,8 @@ void GameWindow::clockRead(bool first_input)
         return;
     }
 
-//    QFile inputFile("./clocks.qml");
-    QFile inputFile("/Users/sharlina/Documents/coding/Mort/Mort/docs/clocks.qml");
+    QFile inputFile("clocks.qml");
+//    QFile inputFile("/Users/sharlina/Documents/coding/Mort/Mort/docs/clocks.qml");
 
 
     if (!inputFile.open(QIODevice::ReadOnly)) {
@@ -202,12 +220,4 @@ void GameWindow::clockRead(bool first_input)
         timers[i] = new Timer(this, line.toInt());
     }
     inputFile.close();
-}
-
-
-
-void GameWindow::on_pushButton_clicked()
-{
-    user.setUsername(ui->testUsername->text());
-    qDebug() << user.exist() << " " << user.getUsername();
 }
