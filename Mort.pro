@@ -31,16 +31,20 @@ SOURCES += \
         main.cpp \
         ui/gamewindow.cpp \
     game_objects/user.cpp \
-    aboutdialog.cpp
+    ui/aboutdialog.cpp \
+    game_objects/clock.cpp \
+    game_objects/timer.cpp
 
 HEADERS += \
         ui/gamewindow.h \
     game_objects/user.h \
-    aboutdialog.h
+    ui/aboutdialog.h \
+    game_objects/clock.h \
+    game_objects/timer.h
 
 FORMS += \
         ui/gamewindow.ui \
-    aboutdialog.ui
+    ui/aboutdialog.ui
 
 RESOURCES += \
     images.qrc

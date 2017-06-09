@@ -2,7 +2,8 @@
 #define GAMEWINDOW_H
 
 #include <QMainWindow>
-#include "game_objects/user.h"
+#include "../game_objects/user.h"
+#include "../game_objects/timer.h"
 
 namespace Ui {
 class GameWindow;
@@ -18,10 +19,12 @@ public:
 
 private slots:
     void about();
+    void update();
 
 private:
     Ui::GameWindow *ui;
     User user;
+    Timer* timer;
 };
 
 #endif // GAMEWINDOW_H

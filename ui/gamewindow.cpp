@@ -43,6 +43,9 @@ GameWindow::GameWindow(QWidget *parent) :
     palette.setColor(QPalette::WindowText, Qt::white);
     ui->time_1->setPalette(palette);
 
+    timer = new Timer();
+
+    connect(timer, &Timer::timeout, this, &GameWindow::update);
     connect(ui->actionAbout, &QAction::triggered, this, &GameWindow::about);
 }
 
@@ -56,4 +59,18 @@ void GameWindow::about()
 {
     AboutDialog dialog(this);
     dialog.exec();
+}
+
+void GameWindow::update()
+{
+     timer->decrease();
+    if ( timer->getTime() > 0)
+    {
+        QString time = QString::number(timer->getTime());
+        ui->time_1->setText(time);
+    }
+    else
+    {
+        timer->stop();
+    }
 }

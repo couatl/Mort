@@ -2,7 +2,7 @@
 
 User::User()
 {
-    read();
+
 }
 
 void User::write()

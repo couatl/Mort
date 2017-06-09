@@ -1,4 +1,4 @@
-#include "gamewindow.h"
+#include "ui/gamewindow.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])
