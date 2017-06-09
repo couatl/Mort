@@ -8,6 +8,8 @@
 #include <QFile>
 #include "aboutdialog.h"
 
+#include <QDebug>
+
 GameWindow::GameWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::GameWindow),
@@ -23,15 +25,21 @@ GameWindow::GameWindow(QWidget *parent) :
     times[1] = ui->time_2;
     times[2] = ui->time_3;
 
-    clockRead(true);
-    drawClocks();
     drawBackground();
+    if (!user.exist()) {
+        //  Launch First Window
+    }
+
+    clockRead(!user.exist());
+//    clockRead(true);
+    drawClocks();
 
     connect(ui->actionAbout, &QAction::triggered, this, &GameWindow::about);
 }
 
 GameWindow::~GameWindow()
 {
+    clockWrite();
     for (auto i = timers.begin(); i != timers.end(); ++i) {
         delete *i;
     }
@@ -49,12 +57,26 @@ void GameWindow::update()
 {
     for (int i = 0; i < 3; i++) {
         timers[i]->decrease();
-        if ( timers[i]->getTime() > 0 )
+        if ( timers[i]->getTime() > 0)
         {
-            QString time = QString::number(timers[i]->getTime());
-            times[i]->setText(time);
+            QString minutes = QString::number(timers[i]->getTime() / 60);
+            QString seconds = "0";
+            if (timers[i]->getTime() % 60 >= 10)
+            {
+                seconds = QString::number(timers[i]->getTime() % 60);
+            }
+            else
+            {
+                seconds += QString::number(timers[i]->getTime() % 60);
+            }
+
+            times[i]->setText(minutes + ":" + seconds);
+            if (timers[i]->getTime() <= 10)
+                times[i]->setStyleSheet("QLabel { color : red; }");
         }
-        else {
+        else
+        {
+            times[i]->setText("0:00");
             timers[i]->stop();
         }
     }
@@ -106,7 +128,32 @@ void GameWindow::drawBackground()
 
 void GameWindow::clockWrite()
 {
+//    QFile File("./clocks.qml");
+    QFile File("/Users/sharlina/Documents/coding/Mort/Mort/docs/clocks.qml");
 
+
+    if (!File.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QMessageBox::information(0, "error", File.errorString());
+    }
+    QTextStream stream (&File);
+    for( int i = 0; i < 3; ++i){
+        switch(clocks[i]->getState()) {
+        case Clock::normal:
+            stream << "normal" << " ";
+            break;
+        case Clock::hover:
+            stream << "hover" << " ";
+            break;
+        case Clock::succeed:
+            stream << "succeed" << " ";
+            break;
+        case Clock::failed:
+            stream << "failed" << " ";
+            break;
+        }
+        stream << timers[i]->getTime() << "\n";
+    }
+    File.close();
 }
 
 void GameWindow::clockRead(bool first_input)
@@ -122,7 +169,9 @@ void GameWindow::clockRead(bool first_input)
         return;
     }
 
-    QFile inputFile("../docs/clocks.txt");
+//    QFile inputFile("./clocks.qml");
+    QFile inputFile("/Users/sharlina/Documents/coding/Mort/Mort/docs/clocks.qml");
+
 
     if (!inputFile.open(QIODevice::ReadOnly)) {
         QMessageBox::information(0, "error", inputFile.errorString());
@@ -130,11 +179,35 @@ void GameWindow::clockRead(bool first_input)
 
     //normal 61
     QTextStream in(&inputFile);
-    while(!in.atEnd()) {
+    for(int i = 0; i < 3; ++i) {
         QString line = in.readLine();
-        QStringList fields = line.split(" ");
-
+        QString check = line.left(line.indexOf(" "));
+        if(check ==  "normal") {
+            clocks[i] = new Clock(this, Clock::State::normal);
+//            timers[i] = new Timer(this, line.right(tmp.size() - tmp.indexOf(" ")));
+        }
+        if(check ==  "hover") {
+            clocks[i] = new Clock(this, Clock::State::hover);
+//            timers[i] = new Timer(this, line.right(tmp.size() - tmp.indexOf(" ")));
+        }
+        if(check ==  "succeed") {
+            clocks[i] = new Clock(this, Clock::State::succeed);
+//            timers[i] = new Timer(this, line.right(tmp.size() - tmp.indexOf(" ")));
+        }
+        if(check ==  "failed") {
+            clocks[i] = new Clock(this, Clock::State::failed);
+//            timers[i] = new Timer(this, line.right(tmp.size() - tmp.indexOf(" ")));
+        }
+        line = line.right(line.size() - line.indexOf(" "));
+        timers[i] = new Timer(this, line.toInt());
     }
-
+    inputFile.close();
 }
 
+
+
+void GameWindow::on_pushButton_clicked()
+{
+    user.setUsername(ui->testUsername->text());
+    qDebug() << user.exist() << " " << user.getUsername();
+}

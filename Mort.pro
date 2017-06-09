@@ -47,5 +47,6 @@ FORMS += \
     ui/aboutdialog.ui
 
 RESOURCES += \
-    images.qrc
+    images.qrc \
+    config.qrc
 

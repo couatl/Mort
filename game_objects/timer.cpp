@@ -1,9 +1,9 @@
 #include "timer.h"
 
-Timer::Timer(QObject* parent, int _time):
+Timer::Timer(QObject* parent, int _time, int _period):
     QTimer(parent), time(_time)
 {
-    this->start(1000);
+    this->start(_period);
 }
 
 void Timer::decrease()

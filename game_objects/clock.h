@@ -19,6 +19,10 @@ public:
 
     Clock(QWidget* parent = nullptr, State _state = normal);
 
+    State getState() const {
+        return state;
+    }
+
     void draw();
 
 signals:
