@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/rsc">
+        <file>images/broken_tile.png</file>
+        <file>images/tile.png</file>
+        <file>images/bg.png</file>
+        <file>images/bg960x540.png</file>
+        <file>images/clock.png</file>
+        <file>images/clock_fail.png</file>
+        <file>images/clock_hover.png</file>
+        <file>images/clock_suc.png</file>
+        <file>images/Death_Character.png</file>
+        <file>images/goal.png</file>
+        <file>images/shelf.png</file>
+        <file>images/start_window.png</file>
+        <file>images/start_window2.png</file>
+        <file>resources/ITCBLKAD.TTF</file>
+        <file>images/mort.png</file>
+    </qresource>
+</RCC>
