@@ -8,12 +8,13 @@ class Timer: public QTimer
 {
     Q_OBJECT
 public:
-    Timer(QObject* parent = nullptr, int _time = 60);
-    void stop();
+    Timer(QObject* parent = nullptr, int _time = 61);
     void decrease();
 
     int getTime() const
     { return time; }
+
+    void setTime(int _time);
 
 private:
     int time;

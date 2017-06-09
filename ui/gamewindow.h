@@ -2,8 +2,10 @@
 #define GAMEWINDOW_H
 
 #include <QMainWindow>
+#include <QVector>
 #include "../game_objects/user.h"
 #include "../game_objects/timer.h"
+#include "../game_objects/clock.h"
 
 namespace Ui {
 class GameWindow;
@@ -22,9 +24,18 @@ private slots:
     void update();
 
 private:
+
+    void drawClocks();
+    void drawBackground();
+    void clockWrite();
+    void clockRead(bool first_input);
+
     Ui::GameWindow *ui;
     User user;
-    Timer* timer;
+
+    QVector<Timer*> timers;
+    QVector<Clock*> clocks;
+    QVector<QLabel*> times;
 };
 
 #endif // GAMEWINDOW_H
