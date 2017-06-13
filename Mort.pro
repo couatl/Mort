@@ -33,14 +33,20 @@ SOURCES += \
     game_objects/user.cpp \
     ui/aboutdialog.cpp \
     game_objects/clock.cpp \
-    game_objects/timer.cpp
+    game_objects/timer.cpp \
+    ui/firstwindow.cpp \
+    ui/view.cpp \
+    ui/mainscene.cpp
 
 HEADERS += \
         ui/gamewindow.h \
     game_objects/user.h \
     ui/aboutdialog.h \
     game_objects/clock.h \
-    game_objects/timer.h
+    game_objects/timer.h \
+    ui/firstwindow.h \
+    ui/view.h \
+    ui/mainscene.h
 
 FORMS += \
         ui/gamewindow.ui \

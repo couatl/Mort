@@ -24,12 +24,15 @@ public:
     }
 
     void draw();
+    void setFocused();
+    void deleteFocus();
+
+    bool isFocused();
 
 signals:
     void clicked();
 
 protected:
-    void mousePressEvent(QMouseEvent* event);
 
 private:
     State state;

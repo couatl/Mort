@@ -5,8 +5,8 @@
 #include <QDebug>
 
 User::User()  {
-    QFile file("./user.qml");
-//    QFile file("/Users/sharlina/Documents/coding/Mort/Mort/docs/user.qml");
+//    QFile file("./user.qml");
+    QFile file("/Users/sharlina/Documents/coding/Mort/Mort/docs/user.qml");
 
     if(file.exists()) {
         if(file.open(QIODevice::ReadOnly)){
@@ -45,9 +45,8 @@ bool User::exist() const
 void User::setUsername(QString name)  {
     _username = name;
 
-    QFile file("./user.qml");
-//    QFile file("/Users/sharlina/Documents/coding/Mort/Mort/docs/user.qml");
-
+//    QFile file("./user.qml");
+    QFile file("/Users/sharlina/Documents/coding/Mort/Mort/docs/user.qml");
 
     if(file.open(QIODevice::WriteOnly | QIODevice::Text)){
         QTextStream stream (&file);
@@ -59,8 +58,8 @@ void User::setUsername(QString name)  {
 void User::setScore(unsigned score){
     _score = score;
 
-    QFile file("./user.qml");
-//    QFile file("/Users/sharlina/Documents/coding/Mort/Mort/docs/user.qml");
+//    QFile file("./user.qml");
+    QFile file("/Users/sharlina/Documents/coding/Mort/Mort/docs/user.qml");
 
     if(file.open(QIODevice::WriteOnly | QIODevice::Text)){
         QTextStream stream (&file);

@@ -9,6 +9,7 @@ Clock::Clock(QWidget* parent, State _state):
 {
     this->setVisible(false);
     this->setFixedSize(145, 237);
+    this->setMouseTracking(true);
 
     draw();
 }
@@ -34,8 +35,19 @@ void Clock::draw()
     this->setPixmap(clock);
 }
 
-
-void Clock::mousePressEvent(QMouseEvent *event)
+void Clock::setFocused()
 {
-     emit clicked();
+    state = hover;
+    draw();
+}
+
+void Clock::deleteFocus()
+{
+    state = normal;
+    draw();
+}
+
+bool Clock::isFocused()
+{
+    return (state == hover);
 }

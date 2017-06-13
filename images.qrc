@@ -15,5 +15,6 @@
         <file>images/start_window2.png</file>
         <file>resources/ITCBLKAD.TTF</file>
         <file>images/mort.png</file>
+        <file>images/loading.png</file>
     </qresource>
 </RCC>
