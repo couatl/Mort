@@ -7,56 +7,78 @@
 #include <QTextStream>
 #include <QFile>
 #include <QMouseEvent>
+#include <QLabel>
 #include <QPropertyAnimation>
 #include <QGraphicsOpacityEffect>
 
 #include "aboutdialog.h"
-#include "firstwindow.h"
+
+
+//TODO: Баг при закрытии на первом окне выскакивает сообщение об ошибке
 
 #include <QDebug>
 
 GameWindow::GameWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::GameWindow),
-    user(User()),/*
+    user(User()),
     id_selected(-1),
-    mode(-1),*/
-    clocks(QVector<Clock*>(3))
+    clock_timers(QVector<Timer*>(3)),
+    clocks(QVector<Clock*>(3)),
+    times(QVector<QLabel*>(3)),
+    timer_message(new Timer(nullptr, 60, 300)),
+    loading(new QLabel(this))
 {
     ui->setupUi(this);
     this->setWindowTitle("Mort");
 
-    QPixmap loading(":/rsc/images/loading.png");
-    loading = loading.scaled(ui->loading->size(),Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
-    ui->loading->setPixmap(loading);
-    ui->loading->hide();
-    ui->loading->raise();
+    int id = QFontDatabase::addApplicationFont(":/rsc/resources/ITCBLKAD.TTF");
+    QString font_name = QFontDatabase::applicationFontFamilies(id).at(0);
+    font = QFont(font_name, 38, QFont::Normal);
+
+    times[0] = ui->time_1;
+    times[1] = ui->time_2;
+    times[2] = ui->time_3;
+
+    QPixmap background(":/rsc/images/start_window2.png");
+    background = background.scaled(ui->background->size(), Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+    ui->background->setPixmap(background);
+    ui->background->lower();
 
     connect(ui->actionAbout, &QAction::triggered, this, &GameWindow::about);
     connect(this, &GameWindow::clicked_1, this, &GameWindow::launchGame_1);
-    connect(this, &GameWindow::loadingEnd, this, &GameWindow::afterLoading);
 
     drawBackground();
-    createScene();
 
-    this->setCentralWidget(view);
+    // for firstPage
+    ui->userLineEdit->setFont(font);
+    ui->message->setFont(font);
+    ui->pushButton->setFont(font);
 
-//    if (!user.exist()) {
-//        clearAll();
-//        firstWindow();
-//    }
-//    else {
-//        clockRead(!user.exist());
-//        drawClocks();
-//    }
+    if (!user.exist())
+    {
+        connect(timer_message, &Timer::timeout, this, &GameWindow::writeMessage);
+    }
+    else
+    {
+        clockRead(!user.exist());
+        drawClocks();
+        drawShelf();
+        drawLoading();
+        ui->stackedWidget->setCurrentIndex(1);
+    }
+
 }
 
 GameWindow::~GameWindow()
 {
-//    clockWrite();
-//    for (auto i = timers.begin(); i != timers.end(); ++i) {
-//        delete *i;
-//    }
+    clockWrite();
+    delete loading;
+    delete timer_message;
+    delete scene;
+    for (auto i = clock_timers.begin(); i != clock_timers.end(); ++i) {
+        delete *i;
+    }
     for (auto i = clocks.begin(); i != clocks.end(); ++i) {
         delete *i;
     }
@@ -72,70 +94,49 @@ void GameWindow::about()
 //              ***     Update for timer     ***
 void GameWindow::update()
 {
-    /*
     for (int i = 0; i < 3; i++) {
-        timers[i]->decrease();
-        if ( timers[i]->getTime() > 0)
+        clock_timers[i]->decrease();
+        if ( clock_timers[i]->getTime() > 0)
         {
-            QString minutes = QString::number(timers[i]->getTime() / 60);
+            QString minutes = QString::number(clock_timers[i]->getTime() / 60);
             QString seconds = "0";
-            if (timers[i]->getTime() % 60 >= 10)
+            if (clock_timers[i]->getTime() % 60 >= 10)
             {
-                seconds = QString::number(timers[i]->getTime() % 60);
+                seconds = QString::number(clock_timers[i]->getTime() % 60);
             }
             else
             {
-                seconds += QString::number(timers[i]->getTime() % 60);
+                seconds += QString::number(clock_timers[i]->getTime() % 60);
             }
 
             times[i]->setText(minutes + ":" + seconds);
-            if (timers[i]->getTime() <= 10)
+            if (clock_timers[i]->getTime() <= 10)
                 times[i]->setStyleSheet("QLabel { color : red; }");
         }
         else
         {
             times[i]->setText("0:00");
-            timers[i]->stop();
+            clock_timers[i]->stop();
         }
     }
-    */
 }
 
 void GameWindow::launchGame_1()
 {
     qDebug() << "launch game 1";
+
+    scene = new LevelScene(ui->view, clock_timers[0], &user);
+    ui->view->setScene(scene);
+
     startLoading();
 }
 
-void GameWindow::firstWindow()
-{
-    /*
-    mode = 1;
-    first = new FirstWindow(this, &user);
-    ui->firstLayout->addWidget(first);
-
-    connect(first, &FirstWindow::ok_clicked, this, &GameWindow::firstWindowClosed);
-    */
-}
-
-void GameWindow::firstWindowClosed()
-{
-//    qDebug() << "removing";
-//    ui->firstLayout->removeWidget(first);
-//    delete first;
-//    qDebug() << "loading";
-    startLoading();
-}
-
-/*
 void GameWindow::mousePressEvent(QMouseEvent *event)
 {
-    GameWindow::mousePressEvent(event);
-
     if (event->button() != Qt::LeftButton)
         return;
 
-    if (mode == 1)
+    if (ui->stackedWidget->currentIndex() == 0)
         return;
 
     if (clocks[0]->underMouse()) {
@@ -179,30 +180,9 @@ void GameWindow::mousePressEvent(QMouseEvent *event)
         }
     }
 }
-*/
-
-void GameWindow::createScene()
-{
-    view = new View;
-    first = new FirstWindow(view);
-    connect(first, &FirstWindow::destroyed, this, &GameWindow::firstWindowClosed);
-/*
-    if (!user.exist()) {
-        first = new FirstWindow(view);
-    }
-    else {
-        main = new MainScene(view);
-//        clockRead(!user.exist());
-//        drawClocks();
-    }
-*/
-    // in FirstWindow/MainScene classes view will be set
-
-}
 
 void GameWindow::drawClocks()
 {
-    /*
     for (int i = 0; i < 3; i++) {
         clocks[i]->setVisible(true);
     }
@@ -211,30 +191,25 @@ void GameWindow::drawClocks()
     clocks[1]->setGeometry(410, 150, 145, 237);
     clocks[2]->setGeometry(590, 150, 145, 237);
 
-    int id = QFontDatabase::addApplicationFont(":/rsc/resources/ITCBLKAD.TTF");
-//    int id = QFontDatabase::addApplicationFont("C:/Mort/Mort/resources/ITCBLKAD.TTF");
-    QString font_name = QFontDatabase::applicationFontFamilies(id).at(0);
-    QFont font(font_name, 38, QFont::Normal);
-
     QPalette palette;
     palette.setColor(QPalette::WindowText, Qt::white);
 
     for (int i = 0; i < 3; i++) {
         times[i]->setFont(font);
         times[i]->setPalette(palette);
-        QString minutes = QString::number(timers[i]->getTime() / 60);
+        QString minutes = QString::number(clock_timers[i]->getTime() / 60);
         QString seconds = "0";
-        if (timers[i]->getTime() % 60 >= 10)
+        if (clock_timers[i]->getTime() % 60 >= 10)
         {
-            seconds = QString::number(timers[i]->getTime() % 60);
+            seconds = QString::number(clock_timers[i]->getTime() % 60);
         }
         else
         {
-            seconds += QString::number(timers[i]->getTime() % 60);
+            seconds += QString::number(clock_timers[i]->getTime() % 60);
         }
 
         times[i]->setText(minutes + ":" + seconds);
-        if (timers[i]->getTime() <= 10)
+        if (clock_timers[i]->getTime() <= 10)
             times[i]->setStyleSheet("QLabel { color : red; }");
     }
     ui->label->setFont(font);
@@ -244,9 +219,17 @@ void GameWindow::drawClocks()
 
     ui->label->setText("Good night, " + user.getUsername() + ". They're waiting.");
     ui->score->setText("Score: " + QString::number(user.getScore()));
-    */
 }
 
+void GameWindow::drawLoading()
+{
+    QPixmap _loading(":/rsc/images/loading.png");
+    loading->setGeometry(0, 0, 960, 540);
+    _loading = _loading.scaled(960, 540,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+    loading->setPixmap(_loading);
+    loading->raise();
+    loading->hide();
+}
 
 void GameWindow::drawBackground()
 {
@@ -266,10 +249,8 @@ void GameWindow::drawShelf()
     ui->shelf->setPixmap(shelf);
 }
 
-
 void GameWindow::clockWrite()
 {
-    /*
 //    QFile File("clocks.qml");
     QFile File("/Users/sharlina/Documents/coding/Mort/Mort/docs/clocks.qml");
 
@@ -293,23 +274,22 @@ void GameWindow::clockWrite()
             stream << "failed" << " ";
             break;
         }
-        stream << timers[i]->getTime() << "\n";
+        stream << clock_timers[i]->getTime() << "\n";
     }
     File.close();
-    */
 }
 
 void GameWindow::clockRead(bool first_input)
 {
-    /*
     if (first_input) {
+
         clocks[0] = new Clock(this);
         clocks[1] = new Clock(this);
         clocks[2] = new Clock(this);
 
-        timers[0] = new Timer(this);
-        timers[1] = new Timer(this, 143);
-        timers[2] = new Timer(this, 243);
+        clock_timers[0] = new Timer(this);
+        clock_timers[1] = new Timer(this, 143);
+        clock_timers[2] = new Timer(this, 243);
         return;
     }
 
@@ -334,34 +314,65 @@ void GameWindow::clockRead(bool first_input)
             clocks[i] = new Clock(this, Clock::State::failed);
         }
         line = line.right(line.size() - line.indexOf(" "));
-        timers[i] = new Timer(this, line.toInt());
+        clock_timers[i] = new Timer(this, line.toInt());
     }
     inputFile.close();
-    */
+}
+
+void GameWindow::writeMessage()
+{
+    QString message = "Hello, bla bla bla";
+
+        if (ui->message->text().length() == message.length())
+        {
+            timer_message->stop();
+        }
+        else
+        {
+            ui->message->setText(ui->message->text() + message[ui->message->text().length()]);
+        }
 }
 
 void GameWindow::endLoading()
 {
     qDebug() << "end loading";
-    clearAll();
+
+        switch(ui->stackedWidget->currentIndex()){
+        case 0:
+            clockRead(!user.exist());
+            ui->stackedWidget->setCurrentIndex(1);
+            drawBackground();
+            drawShelf();
+            drawClocks();
+            break;
+        case 1:
+            clearAll();
+            ui->stackedWidget->setCurrentIndex(2);
+            break;
+        case 2:
+            //clearScene();
+            ui->stackedWidget->setCurrentIndex(1);
+            break;
+        }
+
     // "затухание"
     QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(this);
-    ui->loading->setGraphicsEffect(eff);
+    loading->setGraphicsEffect(eff);
     QPropertyAnimation *animation = new QPropertyAnimation(eff,"opacity");
     animation->setDuration(1700);
     animation->setStartValue(1);
     animation->setEndValue(0);
     animation->setEasingCurve(QEasingCurve::OutBack);
     animation->start(QPropertyAnimation::DeleteWhenStopped);
-    emit loadingEnd();
 }
 
 void GameWindow::startLoading()
 {
+    drawLoading();
     // "появление"
-    ui->loading->show();
+    loading->show();
     QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(this);
-    ui->loading->setGraphicsEffect(eff);
+    loading->setGraphicsEffect(eff);
     QPropertyAnimation *animation = new QPropertyAnimation(eff,"opacity");
     animation->setDuration(1700);
     animation->setStartValue(0);
@@ -374,7 +385,9 @@ void GameWindow::startLoading()
 
 void GameWindow::clearAll()
 {
-    /*
+    for (int i = 0; i < 3; i++) {
+        clocks[i]->hide();
+    }
     ui->clock_1->hide();
     ui->clock_2->hide();
     ui->clock_3->hide();
@@ -384,12 +397,10 @@ void GameWindow::clearAll()
     ui->label->hide();
     ui->score->hide();
     ui->shelf->hide();
-    */
 }
 
 void GameWindow::showAll()
 {
-    /*
     ui->clock_1->show();
     ui->clock_2->show();
     ui->clock_3->show();
@@ -399,5 +410,21 @@ void GameWindow::showAll()
     ui->label->show();
     ui->score->show();
     ui->shelf->show();
-    */
+}
+
+void GameWindow::on_pushButton_clicked()
+{
+    if (ui->userLineEdit->text() == "")
+        {
+            ui->errorLabel->setText("You MUST have name!");
+        }
+    // TODO : регулярное выражение для всех форматов вида
+    else if (ui->userLineEdit->text() == "death" || ui->userLineEdit->text() == "Death")
+        {
+            ui->errorLabel->setText("You MUST have name!");
+        }
+    else {
+            user.setUsername(ui->userLineEdit->text());
+            startLoading();
+    }
 }

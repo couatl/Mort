@@ -34,9 +34,10 @@ SOURCES += \
     ui/aboutdialog.cpp \
     game_objects/clock.cpp \
     game_objects/timer.cpp \
-    ui/firstwindow.cpp \
-    ui/view.cpp \
-    ui/mainscene.cpp
+    ui/levelscene.cpp \
+    game_objects/player.cpp \
+    game_objects/block.cpp \
+    game_objects/goal.cpp
 
 HEADERS += \
         ui/gamewindow.h \
@@ -44,9 +45,10 @@ HEADERS += \
     ui/aboutdialog.h \
     game_objects/clock.h \
     game_objects/timer.h \
-    ui/firstwindow.h \
-    ui/view.h \
-    ui/mainscene.h
+    ui/levelscene.h \
+    game_objects/player.h \
+    game_objects/block.h \
+    game_objects/goal.h
 
 FORMS += \
         ui/gamewindow.ui \
