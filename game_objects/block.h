@@ -2,13 +2,20 @@
 #define BLOCK_H
 
 #include <QGraphicsItem>
-#include <QGraphicsRectItem>
 
-class Block : public QGraphicsRectItem
+class Block : public QGraphicsItem
 {
 public:
-    explicit Block(QGraphicsItem *parent = 0);
+    explicit Block(int _x, int _y, QGraphicsItem *parent = 0);
 
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    QRectF boundingRect() const;
+
+private:
+    QPixmap blockImage;
+
+    int x;
+    int y;
 };
 
 #endif // BLOCK_H

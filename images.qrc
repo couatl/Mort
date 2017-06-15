@@ -16,5 +16,7 @@
         <file>resources/ITCBLKAD.TTF</file>
         <file>images/mort.png</file>
         <file>images/loading.png</file>
+        <file>images/broken_right.png</file>
+        <file>images/broken_left.png</file>
     </qresource>
 </RCC>

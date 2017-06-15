@@ -14,6 +14,11 @@
 //  TODO: Песок на часах failed
 //  TODO: поменять succeed
 
+//  TODO: bug зависание loading через раз
+//  TODO: bug время таймера после завершения в -1 уходит
+//  TODO: score записывается как max_int ???
+//  TODO: настроить коннект для завершения уровня
+
 namespace Ui {
 class GameWindow;
 }
@@ -32,11 +37,12 @@ public:
 
 private slots:
     void about();
-    void update();
 
     void endLoading();
 
     void launchGame_1();
+    void completedGame_1();
+    void failedGame_1();
 
     void on_pushButton_clicked();
 

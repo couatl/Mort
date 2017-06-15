@@ -14,6 +14,12 @@ Clock::Clock(QWidget* parent, State _state):
     draw();
 }
 
+void Clock::setState(State _state)
+{
+    state = _state;
+    draw();
+}
+
 void Clock::draw()
 {
     QPixmap clock;

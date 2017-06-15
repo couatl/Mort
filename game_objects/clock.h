@@ -23,12 +23,15 @@ public:
         return state;
     }
 
+    void setState(State _state);
+
     void draw();
     void setFocused();
     void deleteFocus();
 
     bool isFocused();
     bool isNormal();
+
 signals:
     void clicked();
 

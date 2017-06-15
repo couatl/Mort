@@ -38,7 +38,8 @@ SOURCES += \
     game_objects/player.cpp \
     game_objects/block.cpp \
     game_objects/goal.cpp \
-    ui/level.cpp
+    ui/level.cpp \
+    game_objects/brokenblock.cpp
 
 HEADERS += \
         ui/gamewindow.h \
@@ -50,7 +51,8 @@ HEADERS += \
     game_objects/player.h \
     game_objects/block.h \
     game_objects/goal.h \
-    ui/level.h
+    ui/level.h \
+    game_objects/brokenblock.h
 
 FORMS += \
         ui/gamewindow.ui \

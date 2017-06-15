@@ -12,6 +12,7 @@
 #include <QGraphicsOpacityEffect>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
+#include <QColor>
 
 #include "aboutdialog.h"
 
@@ -21,7 +22,7 @@ QGraphicsDropShadowEffect* ShadowEffect(QGraphicsDropShadowEffect* eff)
 {
     eff->setOffset(0, 0);
     eff->setBlurRadius(10.0);
-    eff->setColor(Qt::black);
+    eff->setColor(QColor(24, 148, 197));
     return eff;
 }
 
@@ -56,6 +57,8 @@ GameWindow::GameWindow(QWidget *parent) :
 
     connect(ui->actionAbout, &QAction::triggered, this, &GameWindow::about);
     connect(this, &GameWindow::clicked_1, this, &GameWindow::launchGame_1);
+    connect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
+    connect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
 
     drawBackground();
 
@@ -63,6 +66,15 @@ GameWindow::GameWindow(QWidget *parent) :
     ui->userLineEdit->setFont(font);
     ui->message->setFont(font);
     ui->pushButton->setFont(font);
+
+    // for level page
+    QFont fontLabel = QFont(font_name, 52, QFont::Normal);
+    ui->timerLabel->setFont(fontLabel);
+    QGraphicsDropShadowEffect *effTimer = new QGraphicsDropShadowEffect(this);
+    ui->timerLabel->setGraphicsEffect(ShadowEffect(effTimer));
+    QPalette palette;
+    palette.setColor(QPalette::WindowText, Qt::white);
+    ui->timerLabel->setPalette(palette);
 
     if (!user.exist())
     {
@@ -80,6 +92,10 @@ GameWindow::GameWindow(QWidget *parent) :
 
 GameWindow::~GameWindow()
 {
+    delete ui->timerLabel->graphicsEffect();
+    delete ui->score->graphicsEffect();
+    delete ui->label->graphicsEffect();
+
     if(user.getUsername() != "")
         clockWrite();
 
@@ -101,44 +117,26 @@ void GameWindow::about()
     dialog.exec();
 }
 
-//              ***     Update for timer     ***
-void GameWindow::update()
-{
-    for (int i = 0; i < 3; i++) {
-        clock_timers[i]->decrease();
-        if ( clock_timers[i]->getTime() > 0)
-        {
-            QString minutes = QString::number(clock_timers[i]->getTime() / 60);
-            QString seconds = "0";
-            if (clock_timers[i]->getTime() % 60 >= 10)
-            {
-                seconds = QString::number(clock_timers[i]->getTime() % 60);
-            }
-            else
-            {
-                seconds += QString::number(clock_timers[i]->getTime() % 60);
-            }
-
-            times[i]->setText(minutes + ":" + seconds);
-            if (clock_timers[i]->getTime() <= 10)
-                times[i]->setStyleSheet("QLabel { color : red; }");
-        }
-        else
-        {
-            times[i]->setText("0:00");
-            clock_timers[i]->stop();
-        }
-    }
-}
-
 void GameWindow::launchGame_1()
 {
     qDebug() << "launch game 1";
 
-    scene = new LevelScene(ui->view, clock_timers[0], &user);
+    scene = new LevelScene(ui->view, ui->timerLabel, clock_timers[0], &user);
     ui->view->setScene(scene);
 
     startLoading();
+}
+
+void GameWindow::completedGame_1()
+{
+
+}
+
+void GameWindow::failedGame_1()
+{
+    clocks[0]->setState(Clock::failed);
+    clock_timers[0]->setTime(0);
+    ui->time_1->setText("0:00");
 }
 
 void GameWindow::mousePressEvent(QMouseEvent *event)
@@ -350,7 +348,7 @@ void GameWindow::clockRead(bool first_input)
 }
 
 void GameWindow::writeMessage()  {
-    QString message = "Hello, bla bla bla";
+    QString message = "Hello, bla bla bla \n\n\n\n\n Enter your name";
 
         if (ui->message->text().length() == message.length())
         {
@@ -366,8 +364,9 @@ void GameWindow::endLoading()
 {
     qDebug() << "end loading";
 
-        switch(ui->stackedWidget->currentIndex()){
+   switch(ui->stackedWidget->currentIndex()){
         case 0:
+            qDebug() << "case 0";
             clockRead(!user.exist());
             ui->stackedWidget->setCurrentIndex(1);
             drawBackground();
@@ -375,10 +374,12 @@ void GameWindow::endLoading()
             drawClocks();
             break;
         case 1:
+            qDebug() << "case 1";
             clearAll();
             ui->stackedWidget->setCurrentIndex(2);
             break;
         case 2:
+            qDebug() << "case 2";
             //clearScene();
             ui->stackedWidget->setCurrentIndex(1);
             break;
@@ -392,6 +393,7 @@ void GameWindow::endLoading()
     animation->setStartValue(1);
     animation->setEndValue(0);
     animation->setEasingCurve(QEasingCurve::OutBack);
+    qDebug() << "animation case";
     animation->start(QPropertyAnimation::DeleteWhenStopped);
 }
 
