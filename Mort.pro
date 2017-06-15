@@ -37,7 +37,8 @@ SOURCES += \
     ui/levelscene.cpp \
     game_objects/player.cpp \
     game_objects/block.cpp \
-    game_objects/goal.cpp
+    game_objects/goal.cpp \
+    ui/level.cpp
 
 HEADERS += \
         ui/gamewindow.h \
@@ -48,7 +49,8 @@ HEADERS += \
     ui/levelscene.h \
     game_objects/player.h \
     game_objects/block.h \
-    game_objects/goal.h
+    game_objects/goal.h \
+    ui/level.h
 
 FORMS += \
         ui/gamewindow.ui \
