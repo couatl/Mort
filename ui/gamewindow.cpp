@@ -10,13 +10,20 @@
 #include <QLabel>
 #include <QPropertyAnimation>
 #include <QGraphicsOpacityEffect>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
 
 #include "aboutdialog.h"
 
-
-//TODO: Баг при закрытии на первом окне выскакивает сообщение об ошибке
-
 #include <QDebug>
+
+QGraphicsDropShadowEffect* ShadowEffect(QGraphicsDropShadowEffect* eff)
+{
+    eff->setOffset(0, 0);
+    eff->setBlurRadius(10.0);
+    eff->setColor(Qt::black);
+    return eff;
+}
 
 GameWindow::GameWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -31,6 +38,8 @@ GameWindow::GameWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     this->setWindowTitle("Mort");
+
+    ui->stackedWidget->setCurrentIndex(0);
 
     int id = QFontDatabase::addApplicationFont(":/rsc/resources/ITCBLKAD.TTF");
     QString font_name = QFontDatabase::applicationFontFamilies(id).at(0);
@@ -67,12 +76,13 @@ GameWindow::GameWindow(QWidget *parent) :
         drawLoading();
         ui->stackedWidget->setCurrentIndex(1);
     }
-
 }
 
 GameWindow::~GameWindow()
 {
-    clockWrite();
+    if(user.getUsername() != "")
+        clockWrite();
+
     delete loading;
     delete timer_message;
     delete scene;
@@ -139,7 +149,7 @@ void GameWindow::mousePressEvent(QMouseEvent *event)
     if (ui->stackedWidget->currentIndex() == 0)
         return;
 
-    if (clocks[0]->underMouse()) {
+    if (clocks[0]->underMouse() && clocks[0]->isNormal()) {
 
         if(clocks[0]->isFocused())
             emit clicked_1();
@@ -152,7 +162,7 @@ void GameWindow::mousePressEvent(QMouseEvent *event)
             id_selected = 0;
             clocks[0]->setFocused();
         }
-    }   else if (clocks[1]->underMouse()) {
+    }   else if (clocks[1]->underMouse() && clocks[1]->isNormal()) {
 
         if(clocks[1]->isFocused())
             emit clicked_2();
@@ -165,7 +175,7 @@ void GameWindow::mousePressEvent(QMouseEvent *event)
             id_selected = 1;
             clocks[1]->setFocused();
         }
-    }    else if (clocks[2]->underMouse()) {
+    }    else if (clocks[2]->underMouse() && clocks[2]->isNormal() ) {
 
         if(clocks[2]->isFocused())
             emit clicked_3();
@@ -212,6 +222,13 @@ void GameWindow::drawClocks()
         if (clock_timers[i]->getTime() <= 10)
             times[i]->setStyleSheet("QLabel { color : red; }");
     }
+
+    //TODO: delete
+    QGraphicsDropShadowEffect *effLabel = new QGraphicsDropShadowEffect(this);
+    QGraphicsDropShadowEffect *effScore = new QGraphicsDropShadowEffect(this);
+    ui->label->setGraphicsEffect(ShadowEffect(effLabel));
+    ui->score->setGraphicsEffect(ShadowEffect(effScore));
+
     ui->label->setFont(font);
     ui->label->setPalette(palette);
     ui->score->setFont(font);
@@ -251,38 +268,43 @@ void GameWindow::drawShelf()
 
 void GameWindow::clockWrite()
 {
-//    QFile File("clocks.qml");
-    QFile File("/Users/sharlina/Documents/coding/Mort/Mort/docs/clocks.qml");
+//    QFile file("clocks.xml");
+    QFile file("/Users/sharlina/Documents/coding/Mort/Mort/docs/clocks.xml");
 
-
-    if (!File.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::information(0, "error", File.errorString());
-    }
-    QTextStream stream (&File);
-    for( int i = 0; i < 3; ++i){
+    file.open(QIODevice::WriteOnly);
+    QXmlStreamWriter xmlWriter(&file);
+    xmlWriter.setAutoFormatting(true);
+    xmlWriter.writeStartDocument();
+    xmlWriter.writeStartElement("resources");
+    for( int i = 0; i < 3; ++i )  {
+        xmlWriter.writeStartElement("clock");
         switch(clocks[i]->getState()) {
-        case Clock::normal:
-            stream << "normal" << " ";
-            break;
-        case Clock::hover:
-            stream << "normal" << " ";
-            break;
-        case Clock::succeed:
-            stream << "succeed" << " ";
-            break;
-        case Clock::failed:
-            stream << "failed" << " ";
-            break;
-        }
-        stream << clock_timers[i]->getTime() << "\n";
+                case Clock::normal:
+                    xmlWriter.writeCharacters("normal");
+                    break;
+                case Clock::hover:
+                    xmlWriter.writeCharacters("normal");
+                    break;
+                case Clock::succeed:
+                    xmlWriter.writeCharacters("succeed");
+                    break;
+                case Clock::failed:
+                    xmlWriter.writeCharacters("failed");
+                    break;
+                }
+        xmlWriter.writeEndElement();
+        xmlWriter.writeStartElement("timer");
+        xmlWriter.writeCharacters(QString::number(clock_timers[i]->getTime()));
+        xmlWriter.writeEndElement();
     }
-    File.close();
+    xmlWriter.writeEndElement();
+    xmlWriter.writeEndDocument();
+    file.close();
 }
 
 void GameWindow::clockRead(bool first_input)
 {
     if (first_input) {
-
         clocks[0] = new Clock(this);
         clocks[1] = new Clock(this);
         clocks[2] = new Clock(this);
@@ -291,36 +313,45 @@ void GameWindow::clockRead(bool first_input)
         clock_timers[1] = new Timer(this, 143);
         clock_timers[2] = new Timer(this, 243);
         return;
-    }
+    } else  {
 
-//    QFile inputFile("clocks.qml");
-    QFile inputFile("/Users/sharlina/Documents/coding/Mort/Mort/docs/clocks.qml");
+//    QFile file("clocks.xml");
+    QFile file("/Users/sharlina/Documents/coding/Mort/Mort/docs/clocks.xml");
 
-    if (!inputFile.open(QIODevice::ReadOnly)) {
-        QMessageBox::information(0, "error", inputFile.errorString());
-    }
+    file.open(QIODevice::ReadOnly | QFile::Text);
+    QXmlStreamReader xmlReader;
+    xmlReader.setDevice(&file);
+    xmlReader.readNext();
+    int i = 0;
+    while(!xmlReader.atEnd()){
+        if(xmlReader.isStartElement()){
+            if(xmlReader.name() == "clock"){
+                if(xmlReader.readElementText() ==  "normal") {
+                    clocks[i] = new Clock(this, Clock::State::normal);
+                }
+                if(xmlReader.readElementText() ==  "hover") {
+                    clocks[i] = new Clock(this, Clock::State::hover);
+                }
+                if(xmlReader.readElementText() ==  "succeed") {
+                    clocks[i] = new Clock(this, Clock::State::succeed);
+                }
+                if(xmlReader.readElementText() ==  "failed") {
+                    clocks[i] = new Clock(this, Clock::State::failed);
+                }
+            }
+            if(xmlReader.name() == "timer"){
+            clock_timers[i++] = new Timer(this, xmlReader.readElementText().toInt());
+            }
 
-    QTextStream in(&inputFile);
-    for(int i = 0; i < 3; ++i) {
-        QString line = in.readLine();
-        QString check = line.left(line.indexOf(" "));
-        if(check ==  "normal") {
-            clocks[i] = new Clock(this, Clock::State::normal);
         }
-        if(check ==  "succeed") {
-            clocks[i] = new Clock(this, Clock::State::succeed);
+            xmlReader.readNext();
         }
-        if(check ==  "failed") {
-            clocks[i] = new Clock(this, Clock::State::failed);
-        }
-        line = line.right(line.size() - line.indexOf(" "));
-        clock_timers[i] = new Timer(this, line.toInt());
+
+    file.close();
     }
-    inputFile.close();
 }
 
-void GameWindow::writeMessage()
-{
+void GameWindow::writeMessage()  {
     QString message = "Hello, bla bla bla";
 
         if (ui->message->text().length() == message.length())
@@ -401,6 +432,9 @@ void GameWindow::clearAll()
 
 void GameWindow::showAll()
 {
+   for (int i=0;i<3;i++){
+       clocks[i]->hide();
+   }
     ui->clock_1->show();
     ui->clock_2->show();
     ui->clock_3->show();

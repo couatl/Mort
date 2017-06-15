@@ -28,7 +28,7 @@ public:
     void deleteFocus();
 
     bool isFocused();
-
+    bool isNormal();
 signals:
     void clicked();
 

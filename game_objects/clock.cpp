@@ -51,3 +51,8 @@ bool Clock::isFocused()
 {
     return (state == hover);
 }
+
+bool Clock::isNormal()
+{
+    return (state == hover) || (state == normal);
+}
