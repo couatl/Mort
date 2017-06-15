@@ -268,8 +268,7 @@ void GameWindow::drawShelf()
 
 void GameWindow::clockWrite()
 {
-//    QFile file("clocks.xml");
-    QFile file("/Users/sharlina/Documents/coding/Mort/Mort/docs/clocks.xml");
+    QFile file(filepath + "clocks.xml");
 
     file.open(QIODevice::WriteOnly);
     QXmlStreamWriter xmlWriter(&file);
@@ -315,8 +314,7 @@ void GameWindow::clockRead(bool first_input)
         return;
     } else  {
 
-//    QFile file("clocks.xml");
-    QFile file("/Users/sharlina/Documents/coding/Mort/Mort/docs/clocks.xml");
+    QFile file(filepath + "clocks.xml");
 
     file.open(QIODevice::ReadOnly | QFile::Text);
     QXmlStreamReader xmlReader;
@@ -339,7 +337,7 @@ void GameWindow::clockRead(bool first_input)
                     clocks[i] = new Clock(this, Clock::State::failed);
                 }
             }
-            if(xmlReader.name() == "timer"){
+            if(xmlReader.name() == "timer")  {
             clock_timers[i++] = new Timer(this, xmlReader.readElementText().toInt());
             }
 

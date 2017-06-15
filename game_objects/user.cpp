@@ -58,8 +58,7 @@ bool User::exist() const
 void User::setUsername(QString name)  {
     _username = name;
 
-//    QFile file("user.xml");
-    QFile file("/Users/sharlina/Documents/coding/Mort/Mort/docs/user.xml");
+    QFile file(filepath + "user.xml");
 
     if(file.open(QIODevice::WriteOnly | QIODevice::Text)){     
         QXmlStreamWriter xmlWriter(&file);
@@ -79,8 +78,7 @@ void User::setUsername(QString name)  {
 void User::setScore(unsigned score){
     _score = score;
 
-//    QFile file("user.xml");
-    QFile file("/Users/sharlina/Documents/coding/Mort/Mort/docs/user.xml");
+    QFile file(filepath + "user.xml");
 
     if(file.open(QIODevice::WriteOnly | QIODevice::Text)){ 
         QXmlStreamWriter xmlWriter(&file);

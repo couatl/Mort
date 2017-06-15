@@ -23,7 +23,6 @@ private:
 
     QPixmap playerImage;
     State state;
-
 };
 
 #endif // PLAYER_H
