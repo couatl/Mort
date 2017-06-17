@@ -21,7 +21,8 @@ User::User()  {
                         _username = xmlReader.readElementText();
                     }
                     if(xmlReader.name() == "score"){
-                        _score = xmlReader.readElementText().toInt();
+                        QString tmp = xmlReader.readElementText();
+                        _score = tmp.toInt();
                     }
                 }
                     xmlReader.readNext();
@@ -64,11 +65,13 @@ void User::setUsername(QString name)  {
         QXmlStreamWriter xmlWriter(&file);
         xmlWriter.setAutoFormatting(true);
         xmlWriter.writeStartDocument();
+        xmlWriter.writeStartElement("sources");
         xmlWriter.writeStartElement("username");
         xmlWriter.writeCharacters(_username);
         xmlWriter.writeEndElement();
         xmlWriter.writeStartElement("score");
         xmlWriter.writeCharacters(QString::number(_score));
+        xmlWriter.writeEndElement();
         xmlWriter.writeEndElement();
         xmlWriter.writeEndDocument();
         file.close();
@@ -84,11 +87,13 @@ void User::setScore(unsigned score){
         QXmlStreamWriter xmlWriter(&file);
         xmlWriter.setAutoFormatting(true);
         xmlWriter.writeStartDocument();
+        xmlWriter.writeStartElement("sources");
         xmlWriter.writeStartElement("username");
         xmlWriter.writeCharacters(_username);
         xmlWriter.writeEndElement();
         xmlWriter.writeStartElement("score");
         xmlWriter.writeCharacters(QString::number(_score));
+        xmlWriter.writeEndElement();
         xmlWriter.writeEndElement();
         xmlWriter.writeEndDocument();
         file.close();

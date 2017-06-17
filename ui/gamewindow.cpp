@@ -122,8 +122,6 @@ void GameWindow::launchGame_1()
     qDebug() << "launch game 1";
 
     scene = new LevelScene(ui->view, ui->timerLabel, clock_timers[0], &user);
-    ui->view->setScene(scene);
-
     startLoading();
 }
 
@@ -137,6 +135,7 @@ void GameWindow::failedGame_1()
     clocks[0]->setState(Clock::failed);
     clock_timers[0]->setTime(0);
     ui->time_1->setText("0:00");
+
 }
 
 void GameWindow::mousePressEvent(QMouseEvent *event)
@@ -377,6 +376,8 @@ void GameWindow::endLoading()
             qDebug() << "case 1";
             clearAll();
             ui->stackedWidget->setCurrentIndex(2);
+            ui->view->setScene(scene);
+            ui->view->setFocus();
             break;
         case 2:
             qDebug() << "case 2";
@@ -387,14 +388,14 @@ void GameWindow::endLoading()
 
     // "затухание"
     QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(this);
-    loading->setGraphicsEffect(eff);
-    QPropertyAnimation *animation = new QPropertyAnimation(eff,"opacity");
+    animation = new QPropertyAnimation(eff, "opacity");
     animation->setDuration(1700);
     animation->setStartValue(1);
     animation->setEndValue(0);
     animation->setEasingCurve(QEasingCurve::OutBack);
-    qDebug() << "animation case";
     animation->start(QPropertyAnimation::DeleteWhenStopped);
+    loading->setGraphicsEffect(eff);
+    qDebug() << "animation case";
 }
 
 void GameWindow::startLoading()

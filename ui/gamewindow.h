@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QVector>
+#include <QPropertyAnimation>
 
 #include "levelscene.h"
 
@@ -70,6 +71,8 @@ private:
     void clockRead(bool first_input);
 
     void writeMessage();
+
+    QPropertyAnimation *animation;
 
     Ui::GameWindow *ui;
 

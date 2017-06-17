@@ -2,13 +2,14 @@
 #define PLAYER_H
 
 #include <QGraphicsItem>
+#include "timer.h"
 
 class Player : public QGraphicsItem
 {
 public:
     explicit Player(QGraphicsItem *parent = 0);
 
-//    void walk();
+    void walk(bool right);
 //    void jump();
 //    void fall();
 
@@ -17,6 +18,9 @@ public:
     }
     int getY() const {
         return y;
+    }
+    int getDirection() const {
+        return direction;
     }
 
     void setX(int _x) {
@@ -33,6 +37,11 @@ public:
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
+    void rotate();
+
+public slots:
+    void animation();
+
 private:
     enum State {
         stand,
@@ -40,10 +49,13 @@ private:
     };
 
     QPixmap playerImage;
+    QPixmap playerImageRotate;
+
     State state;
 
     int x;
     int y;
+    int direction;
 };
 
 #endif // PLAYER_H

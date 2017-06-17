@@ -6,6 +6,7 @@
 #include <QGraphicsPixmapItem>
 #include <QLabel>
 #include <QVector>
+#include <QKeyEvent>
 
 #include "../game_objects/timer.h"
 #include "../game_objects/user.h"
@@ -30,6 +31,10 @@ signals:
 
 public slots:
     void update();
+    void PlayerAnimation();
+
+protected:
+    void keyPressEvent(QKeyEvent *event);
 
 private:
     Timer* timer;
@@ -50,6 +55,11 @@ private:
     QGraphicsPixmapItem* clockImage;
 
     Level* level;
+
+    // flying animation
+    int yAnimation;
+    bool upAnimation;
+    Timer* timerAnimation;
 };
 
 #endif // LEVELSCENE_H

@@ -9,7 +9,10 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     QGraphicsScene(parent),
     view(_view), timerLabel(_timerLabel),
     timer(_timer), user(_user),
-    startBlocks(QVector<Block*>(4))
+    startBlocks(QVector<Block*>(4)),
+    yAnimation(0),
+    upAnimation(true),
+    timerAnimation(new Timer(nullptr, 60, 20))
 {
     this->setSceneRect(0, 0, 960, 540);
     QPixmap _background(":/rsc/images/bg.png");
@@ -23,12 +26,15 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
         startBlocks[i] = new Block(0 + i*86, 453);
         this->addItem(startBlocks[i]);
     }
+
 //    qDebug() << startBlocks[3]->boundingRect().topRight().x();
     broken = new BrokenBlock(startBlocks[3]->boundingRect().topRight().x(), 453);
     this->addItem(broken);
 
     timer->start();
+
     connect(timer, &Timer::timeout, this, &LevelScene::update);
+    connect(timerAnimation, &Timer::timeout, this, &LevelScene::PlayerAnimation);
 }
 
 LevelScene::~LevelScene() {
@@ -37,6 +43,40 @@ LevelScene::~LevelScene() {
         delete startBlocks[i];
     }
     delete broken;
+    delete timerAnimation;
+}
+
+void LevelScene::PlayerAnimation()
+{
+    if (yAnimation==14 || yAnimation==-14)
+    {
+        upAnimation = !upAnimation;
+    }
+    if (upAnimation)
+    {
+        yAnimation++;
+    }
+    else
+    {
+        yAnimation--;
+    }
+    player->setPos(player->getX()==player->pos().x() ? player->pos().x() : player->pos().x()+(player->pos().x() > player->getX() ? -1 : 1), player->getY()+yAnimation);
+}
+
+void LevelScene::keyPressEvent(QKeyEvent *event)
+{
+    switch (event->key()) {
+    case Qt::Key_Right:
+        if (player->getDirection() == -1)
+            player->rotate();
+        player->walk(true);
+        break;
+    case Qt::Key_Left:
+        if (player->getDirection() == 1)
+            player->rotate();
+        player->walk(false);
+        break;
+    }
 }
 
 void LevelScene::update()
