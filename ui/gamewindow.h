@@ -20,6 +20,9 @@
 //  TODO: score записывается как max_int ???
 //  TODO: настроить коннект для завершения уровня
 
+class LoadingWorker;
+class Controller;
+
 namespace Ui {
 class GameWindow;
 }
@@ -28,6 +31,7 @@ class GameWindow : public QMainWindow
 {
     Q_OBJECT
 
+    friend class LoadingWorker;
 public:
     explicit GameWindow(QWidget *parent = 0);
     ~GameWindow();
@@ -72,7 +76,8 @@ private:
 
     void writeMessage();
 
-    QPropertyAnimation *animation;
+    QPropertyAnimation* animationStart;
+    QPropertyAnimation* animationEnd;
 
     Ui::GameWindow *ui;
 

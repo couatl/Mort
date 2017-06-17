@@ -7,8 +7,9 @@
 #include <QDebug>
 
 User::User()  {
+    qDebug() << filepath;
 //    QFile file("user.xml");
-    QFile file("/Users/sharlina/Documents/coding/Mort/Mort/docs/user.xml");
+    QFile file(filepath + "user.xml");
 
     if(file.exists()) {
         if(file.open(QIODevice::ReadOnly)){
@@ -98,4 +99,6 @@ void User::setScore(unsigned score){
         xmlWriter.writeEndDocument();
         file.close();
     }
+
+
 }

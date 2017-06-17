@@ -6,7 +6,9 @@
 #include <QIODevice>
 #include <QTextStream>
 
-const QString filepath = "/Users/sharlina/Documents/coding/Mort/Mort/docs/";
+#include <QDir>
+
+const QString filepath = QDir::currentPath(); //"/Users/sharlina/Documents/coding/Mort/Mort/docs/";
 
 class User
 {

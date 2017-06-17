@@ -7,8 +7,8 @@
 
 LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer, User *_user, QWidget *parent):
     QGraphicsScene(parent),
-    view(_view), timerLabel(_timerLabel),
-    timer(_timer), user(_user),
+    view(_view), timer(_timer),
+    timerLabel(_timerLabel), user(_user),
     startBlocks(QVector<Block*>(4)),
     yAnimation(0),
     upAnimation(true),

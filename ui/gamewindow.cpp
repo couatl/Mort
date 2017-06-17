@@ -13,10 +13,13 @@
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 #include <QColor>
+#include <QThread>
 
 #include "aboutdialog.h"
 
 #include <QDebug>
+
+QThread *workerThread;
 
 QGraphicsDropShadowEffect* ShadowEffect(QGraphicsDropShadowEffect* eff)
 {
@@ -57,10 +60,11 @@ GameWindow::GameWindow(QWidget *parent) :
 
     connect(ui->actionAbout, &QAction::triggered, this, &GameWindow::about);
     connect(this, &GameWindow::clicked_1, this, &GameWindow::launchGame_1);
-    connect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
-    connect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
+    //connect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
+    //connect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
 
     drawBackground();
+    drawLoading();
 
     // for firstPage
     ui->userLineEdit->setFont(font);
@@ -88,6 +92,7 @@ GameWindow::GameWindow(QWidget *parent) :
         drawLoading();
         ui->stackedWidget->setCurrentIndex(1);
     }
+
 }
 
 GameWindow::~GameWindow()
@@ -102,12 +107,15 @@ GameWindow::~GameWindow()
     delete loading;
     delete timer_message;
     delete scene;
+
     for (auto i = clock_timers.begin(); i != clock_timers.end(); ++i) {
         delete *i;
     }
+
     for (auto i = clocks.begin(); i != clocks.end(); ++i) {
         delete *i;
     }
+
     delete ui;
 }
 
@@ -122,6 +130,7 @@ void GameWindow::launchGame_1()
     qDebug() << "launch game 1";
 
     scene = new LevelScene(ui->view, ui->timerLabel, clock_timers[0], &user);
+
     startLoading();
 }
 
@@ -146,45 +155,25 @@ void GameWindow::mousePressEvent(QMouseEvent *event)
     if (ui->stackedWidget->currentIndex() == 0)
         return;
 
-    if (clocks[0]->underMouse() && clocks[0]->isNormal()) {
-
-        if(clocks[0]->isFocused())
-            emit clicked_1();
-        else if(id_selected == -1) {
-            clocks[0]->setFocused();
-            id_selected = 0;
+    if (clocks[0]->underMouse() || clocks[1]->underMouse() || clocks[2]->underMouse()){
+        for(int i = 0; i < 3; ++i){
+            if (clocks[i]->underMouse() && clocks[i]->isNormal()) {
+                if(clocks[i]->isFocused())
+                    emit clicked_1();
+                else if(id_selected == -1) {
+                    clocks[i]->setFocused();
+                    id_selected = i;
+                }
+                else {
+                    clocks[id_selected]->deleteFocus();
+                    id_selected = i;
+                    clocks[i]->setFocused();
+                }
+                }
         }
-        else {
-            clocks[id_selected]->deleteFocus();
-            id_selected = 0;
-            clocks[0]->setFocused();
-        }
-    }   else if (clocks[1]->underMouse() && clocks[1]->isNormal()) {
-
-        if(clocks[1]->isFocused())
-            emit clicked_2();
-        else if(id_selected == -1) {
-            clocks[1]->setFocused();
-            id_selected = 1;
-        }
-        else {
-            clocks[id_selected]->deleteFocus();
-            id_selected = 1;
-            clocks[1]->setFocused();
-        }
-    }    else if (clocks[2]->underMouse() && clocks[2]->isNormal() ) {
-
-        if(clocks[2]->isFocused())
-            emit clicked_3();
-        else if(id_selected == -1) {
-            clocks[2]->setFocused();
-            id_selected = 2;
-        }
-        else {
-            clocks[id_selected]->deleteFocus();
-            id_selected = 2;
-            clocks[2]->setFocused();
-        }
+    } else {
+        for(int i = 0; i < 3; ++i)
+           clocks[i]->deleteFocus();
     }
 }
 
@@ -242,6 +231,7 @@ void GameWindow::drawLoading()
     _loading = _loading.scaled(960, 540,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
     loading->setPixmap(_loading);
     loading->raise();
+    loading->setDisabled(true);
     loading->hide();
 }
 
@@ -321,20 +311,21 @@ void GameWindow::clockRead(bool first_input)
     while(!xmlReader.atEnd()){
         if(xmlReader.isStartElement()){
             if(xmlReader.name() == "clock"){
-                if(xmlReader.readElementText() ==  "normal") {
+                QString state = xmlReader.readElementText();
+                if(state ==  "normal") {
                     clocks[i] = new Clock(this, Clock::State::normal);
                 }
-                if(xmlReader.readElementText() ==  "hover") {
+                if(state ==  "hover") {
                     clocks[i] = new Clock(this, Clock::State::hover);
                 }
-                if(xmlReader.readElementText() ==  "succeed") {
+                if(state ==  "succeed") {
                     clocks[i] = new Clock(this, Clock::State::succeed);
                 }
-                if(xmlReader.readElementText() ==  "failed") {
+                if(state ==  "failed") {
                     clocks[i] = new Clock(this, Clock::State::failed);
                 }
             }
-            if(xmlReader.name() == "timer")  {
+            if(xmlReader.name() == "timer"){
             clock_timers[i++] = new Timer(this, xmlReader.readElementText().toInt());
             }
 
@@ -361,58 +352,68 @@ void GameWindow::writeMessage()  {
 
 void GameWindow::endLoading()
 {
-    qDebug() << "end loading";
-
-   switch(ui->stackedWidget->currentIndex()){
-        case 0:
-            qDebug() << "case 0";
-            clockRead(!user.exist());
-            ui->stackedWidget->setCurrentIndex(1);
-            drawBackground();
-            drawShelf();
-            drawClocks();
-            break;
-        case 1:
-            qDebug() << "case 1";
-            clearAll();
-            ui->stackedWidget->setCurrentIndex(2);
-            ui->view->setScene(scene);
-            ui->view->setFocus();
-            break;
-        case 2:
-            qDebug() << "case 2";
-            //clearScene();
-            ui->stackedWidget->setCurrentIndex(1);
-            break;
-        }
-
     // "затухание"
     QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(this);
-    animation = new QPropertyAnimation(eff, "opacity");
-    animation->setDuration(1700);
-    animation->setStartValue(1);
-    animation->setEndValue(0);
-    animation->setEasingCurve(QEasingCurve::OutBack);
-    animation->start(QPropertyAnimation::DeleteWhenStopped);
     loading->setGraphicsEffect(eff);
-    qDebug() << "animation case";
+    animationEnd = new QPropertyAnimation(eff, "opacity");
+    animationEnd->setDuration(1700);
+    animationEnd->setStartValue(1);
+    animationEnd->setEndValue(0);
+    animationEnd->setEasingCurve(QEasingCurve::OutBack);
+
+    workerThread = new QThread(this);
+    animationEnd->moveToThread(workerThread);
+
+    connect(workerThread, &QThread::finished, animationEnd, &QPropertyAnimation::deleteLater);
+    connect(animationEnd, &QPropertyAnimation::finished, workerThread, &QThread::quit);
+
+    workerThread->start();
+    animationEnd->start();
+
+    switch(ui->stackedWidget->currentIndex()){
+         case 0:
+             qDebug() << "case 0";
+             clockRead(!user.exist());
+             ui->stackedWidget->setCurrentIndex(1);
+             drawBackground();
+             drawShelf();
+             drawClocks();
+             break;
+         case 1:
+             qDebug() << "case 1";
+             clearAll();
+             ui->stackedWidget->setCurrentIndex(2);
+             ui->view->setScene(scene);
+             ui->view->setFocus();
+             break;
+         case 2:
+             qDebug() << "case 2";
+             //clearScene();
+             ui->stackedWidget->setCurrentIndex(1);
+             break;
+         }
+
+    qDebug() << "end loading";
+
+    qDebug() << workerThread->isRunning() << " " << workerThread->isFinished();
+    qDebug() << animationEnd->state();
+
 }
 
 void GameWindow::startLoading()
 {
-    drawLoading();
     // "появление"
     loading->show();
     QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(this);
     loading->setGraphicsEffect(eff);
-    QPropertyAnimation *animation = new QPropertyAnimation(eff,"opacity");
-    animation->setDuration(1700);
-    animation->setStartValue(0);
-    animation->setEndValue(1);
-    animation->setEasingCurve(QEasingCurve::InBack);
-    animation->start(QPropertyAnimation::DeleteWhenStopped);
+    animationStart = new QPropertyAnimation(eff,"opacity");
+    animationStart->setDuration(1700);
+    animationStart->setStartValue(0);
+    animationStart->setEndValue(1);
+    animationStart->setEasingCurve(QEasingCurve::InBack);
+    animationStart->start(QPropertyAnimation::DeleteWhenStopped);
     qDebug() << "start loading";
-    connect(animation, &QPropertyAnimation::finished, this, &GameWindow::endLoading);
+    connect(animationStart, &QPropertyAnimation::finished, this, &GameWindow::endLoading);
 }
 
 void GameWindow::clearAll()
