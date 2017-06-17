@@ -4,7 +4,6 @@
 
 #include <QDebug>
 
-
 LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer, User *_user, QWidget *parent):
     QGraphicsScene(parent),
     view(_view), timer(_timer),
@@ -12,8 +11,9 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     startBlocks(QVector<Block*>(4)),
     yAnimation(0),
     upAnimation(true),
-    timerAnimation(new Timer(nullptr, 60, 20))
-{
+    timerAnimation(new Timer(nullptr, 60, 20)),
+    firstInput(false)
+{   
     this->setSceneRect(0, 0, 960, 540);
     QPixmap _background(":/rsc/images/bg.png");
     _background = _background.scaled(543, 540, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
@@ -27,14 +27,27 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
         this->addItem(startBlocks[i]);
     }
 
-//    qDebug() << startBlocks[3]->boundingRect().topRight().x();
     broken = new BrokenBlock(startBlocks[3]->boundingRect().topRight().x(), 453);
     this->addItem(broken);
 
-    timer->start();
+    QString minutes = QString::number(timer->getTime() / 60);
+    QString seconds = "0";
+    if (timer->getTime() % 60 >= 10)
+    {
+        seconds = QString::number(timer->getTime() % 60);
+    }
+    else
+    {
+        seconds += QString::number(timer->getTime() % 60);
+    }
 
-    connect(timer, &Timer::timeout, this, &LevelScene::update);
-    connect(timerAnimation, &Timer::timeout, this, &LevelScene::PlayerAnimation);
+    timerLabel->setText(minutes + ":" + seconds);
+    if (timer->getTime() <= 10)
+        timerLabel->setStyleSheet("QLabel { color : red; }");
+
+    connect(timerAnimation, &Timer::timeout, this, &LevelScene::playerAnimation);
+    connect(timer, &Timer::timeout, this, &LevelScene::timeUpdate);
+    connect(this, &LevelScene::didFirstInput, this, &LevelScene::timerStart);
 }
 
 LevelScene::~LevelScene() {
@@ -46,7 +59,7 @@ LevelScene::~LevelScene() {
     delete timerAnimation;
 }
 
-void LevelScene::PlayerAnimation()
+void LevelScene::playerAnimation()
 {
     if (yAnimation==14 || yAnimation==-14)
     {
@@ -63,24 +76,44 @@ void LevelScene::PlayerAnimation()
     player->setPos(player->getX()==player->pos().x() ? player->pos().x() : player->pos().x()+(player->pos().x() > player->getX() ? -1 : 1), player->getY()+yAnimation);
 }
 
+void LevelScene::timerStart()
+{
+    timer->start();
+}
+
 void LevelScene::keyPressEvent(QKeyEvent *event)
 {
-    switch (event->key()) {
-    case Qt::Key_Right:
+    int key = event->key();
+
+    if (!firstInput)  {
+        firstInput = true;
+        emit didFirstInput();
+    }
+
+    if (key == Qt::Key_Right || key == Qt::Key_D) {
         if (player->getDirection() == -1)
             player->rotate();
         player->walk(true);
-        break;
-    case Qt::Key_Left:
+    }
+    else if (key == Qt::Key_Left || key == Qt::Key_A) {
         if (player->getDirection() == 1)
             player->rotate();
         player->walk(false);
-        break;
+    }
+    else if (key == Qt::Key_Space || key == Qt::Key_Up) {
+        // TODO: jump
     }
 }
 
-void LevelScene::update()
+void LevelScene::timeUpdate()
 {
+    if (timer->getTime() == 0) {
+        timerLabel->setStyleSheet("QLabel { color : red; }");
+        timerLabel->setText("0:00");
+        timer->stop();
+        emit levelFail();
+    }
+
     timer->decrease();
     if(timer->getTime() > 0) {
         QString minutes = QString::number(timer->getTime() / 60);

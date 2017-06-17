@@ -3,9 +3,6 @@
 
 #include <QLabel>
 
-// TODO: Clock + timer widget
-// ->
-
 class Clock : public QLabel
 {
     Q_OBJECT

@@ -11,6 +11,8 @@ BrokenBlock::BrokenBlock(int _x, int _y, int _dist, QGraphicsItem *parent) :
 
     rightBlock = QPixmap(":/rsc/images/broken_right.png");
     rightBlock = rightBlock.scaled(60, 87, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+
+    this->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
 }
 
 void BrokenBlock::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

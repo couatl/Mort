@@ -129,6 +129,7 @@ void GameWindow::launchGame_1()
 {
     qDebug() << "launch game 1";
 
+    clock_timers[0]->stop();
     scene = new LevelScene(ui->view, ui->timerLabel, clock_timers[0], &user);
 
     startLoading();
@@ -360,15 +361,14 @@ void GameWindow::endLoading()
     animationEnd->setStartValue(1);
     animationEnd->setEndValue(0);
     animationEnd->setEasingCurve(QEasingCurve::OutBack);
-
     workerThread = new QThread(this);
     animationEnd->moveToThread(workerThread);
 
-    connect(workerThread, &QThread::finished, animationEnd, &QPropertyAnimation::deleteLater);
+    connect(workerThread, &QThread::started, this, &GameWindow::processLoading);
     connect(animationEnd, &QPropertyAnimation::finished, workerThread, &QThread::quit);
+    connect(workerThread, &QThread::finished, animationEnd, &QPropertyAnimation::deleteLater);
 
     workerThread->start();
-    animationEnd->start();
 
     switch(ui->stackedWidget->currentIndex()){
          case 0:
@@ -393,11 +393,8 @@ void GameWindow::endLoading()
              break;
          }
 
-    qDebug() << "end loading";
-
     qDebug() << workerThread->isRunning() << " " << workerThread->isFinished();
     qDebug() << animationEnd->state();
-
 }
 
 void GameWindow::startLoading()
@@ -446,6 +443,13 @@ void GameWindow::showAll()
     ui->label->show();
     ui->score->show();
     ui->shelf->show();
+}
+
+void GameWindow::processLoading()
+{
+   animationEnd->start(QPropertyAnimation::DeleteWhenStopped);
+   while (animationEnd->state() != QPropertyAnimation::Stopped)
+     QCoreApplication::processEvents();
 }
 
 void GameWindow::on_pushButton_clicked()

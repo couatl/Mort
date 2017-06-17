@@ -28,10 +28,12 @@ public:
 signals:
     void levelComplete();
     void levelFail();
+    void didFirstInput();
 
 public slots:
-    void update();
-    void PlayerAnimation();
+    void timeUpdate();
+    void playerAnimation();
+    void timerStart();
 
 protected:
     void keyPressEvent(QKeyEvent *event);
@@ -60,6 +62,8 @@ private:
     int yAnimation;
     bool upAnimation;
     Timer* timerAnimation;
+
+    bool firstInput;
 };
 
 #endif // LEVELSCENE_H

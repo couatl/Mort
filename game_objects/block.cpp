@@ -8,6 +8,7 @@ Block::Block(int _x, int _y, QGraphicsItem *parent) :
 {
     blockImage = QPixmap(":/rsc/images/tile.png");
     blockImage = blockImage.scaled(86, 87, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+    this->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
 }
 
 void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
