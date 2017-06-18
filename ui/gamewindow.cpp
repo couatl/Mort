@@ -64,7 +64,6 @@ GameWindow::GameWindow(QWidget *parent) :
     //connect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
 
     drawBackground();
-    drawLoading();
 
     // for firstPage
     ui->userLineEdit->setFont(font);
@@ -296,6 +295,8 @@ void GameWindow::clockRead(bool first_input)
         clocks[1] = new Clock(this);
         clocks[2] = new Clock(this);
 
+        loading->raise();
+
         clock_timers[0] = new Timer(this);
         clock_timers[1] = new Timer(this, 143);
         clock_timers[2] = new Timer(this, 243);
@@ -327,7 +328,7 @@ void GameWindow::clockRead(bool first_input)
                 }
             }
             if(xmlReader.name() == "timer"){
-            clock_timers[i++] = new Timer(this, xmlReader.readElementText().toInt());
+                clock_timers[i++] = new Timer(this, xmlReader.readElementText().toInt());
             }
 
         }
@@ -367,7 +368,7 @@ void GameWindow::endLoading()
     connect(workerThread, &QThread::started, this, &GameWindow::processLoading);
     connect(animationEnd, &QPropertyAnimation::finished, workerThread, &QThread::quit);
     connect(workerThread, &QThread::finished, animationEnd, &QPropertyAnimation::deleteLater);
-
+    connect(animationEnd, &QPropertyAnimation::destroyed, workerThread, &QThread::deleteLater);
     workerThread->start();
 
     switch(ui->stackedWidget->currentIndex()){
@@ -399,6 +400,8 @@ void GameWindow::endLoading()
 
 void GameWindow::startLoading()
 {
+    drawLoading();
+
     // "появление"
     loading->show();
     QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(this);
@@ -431,7 +434,7 @@ void GameWindow::clearAll()
 
 void GameWindow::showAll()
 {
-   for (int i=0;i<3;i++){
+   for (int i=0; i < 3; i++){
        clocks[i]->hide();
    }
     ui->clock_1->show();
@@ -447,9 +450,10 @@ void GameWindow::showAll()
 
 void GameWindow::processLoading()
 {
-   animationEnd->start(QPropertyAnimation::DeleteWhenStopped);
-   while (animationEnd->state() != QPropertyAnimation::Stopped)
+   animationEnd->start();
+   while (animationEnd->state() != QPropertyAnimation::Stopped) {
      QCoreApplication::processEvents();
+   }
 }
 
 void GameWindow::on_pushButton_clicked()

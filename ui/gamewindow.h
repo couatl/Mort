@@ -16,9 +16,8 @@
 //  TODO: поменять succeed
 
 //  TODO: настроить коннект для завершения уровня
-
-class LoadingWorker;
-class Controller;
+//  TODO: баг зависание игрока
+//  TODO: баг свитч после загрузки; если поменять местами, анимация мигает
 
 namespace Ui {
 class GameWindow;
@@ -28,7 +27,6 @@ class GameWindow : public QMainWindow
 {
     Q_OBJECT
 
-    friend class LoadingWorker;
 public:
     explicit GameWindow(QWidget *parent = 0);
     ~GameWindow();

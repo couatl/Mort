@@ -1,6 +1,7 @@
 #include "levelscene.h"
 
 #include <QPalette>
+#include <QThread>
 
 #include <QDebug>
 
@@ -11,7 +12,7 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     startBlocks(QVector<Block*>(4)),
     yAnimation(0),
     upAnimation(true),
-    timerAnimation(new Timer(nullptr, 60, 20)),
+    timerAnimation(new Timer(this, 60, 20)),
     firstInput(false)
 {   
     this->setSceneRect(0, 0, 960, 540);
@@ -45,6 +46,8 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     if (timer->getTime() <= 10)
         timerLabel->setStyleSheet("QLabel { color : red; }");
 
+    timerAnimation->moveToThread(QThread::currentThread());
+
     connect(timerAnimation, &Timer::timeout, this, &LevelScene::playerAnimation);
     connect(timer, &Timer::timeout, this, &LevelScene::timeUpdate);
     connect(this, &LevelScene::didFirstInput, this, &LevelScene::timerStart);
@@ -61,7 +64,7 @@ LevelScene::~LevelScene() {
 
 void LevelScene::playerAnimation()
 {
-    if (yAnimation==14 || yAnimation==-14)
+    if (yAnimation == 14 || yAnimation == -14)
     {
         upAnimation = !upAnimation;
     }
@@ -73,7 +76,12 @@ void LevelScene::playerAnimation()
     {
         yAnimation--;
     }
-    player->setPos(player->getX()==player->pos().x() ? player->pos().x() : player->pos().x()+(player->pos().x() > player->getX() ? -1 : 1), player->getY()+yAnimation);
+
+    player->setPos(
+                player->getX() == player->pos().x() ?
+                       player->pos().x() :
+                       player->pos().x() + player->getDirection(),
+                player->getY() + yAnimation);
 }
 
 void LevelScene::timerStart()
@@ -88,6 +96,7 @@ void LevelScene::keyPressEvent(QKeyEvent *event)
     if (!firstInput)  {
         firstInput = true;
         emit didFirstInput();
+        disconnect(this, &LevelScene::didFirstInput, this, &LevelScene::timerStart);
     }
 
     if (key == Qt::Key_Right || key == Qt::Key_D) {
@@ -100,7 +109,8 @@ void LevelScene::keyPressEvent(QKeyEvent *event)
             player->rotate();
         player->walk(false);
     }
-    else if (key == Qt::Key_Space || key == Qt::Key_Up) {
+    else if (key == Qt::Key_Space || key == Qt::Key_Up ||
+             key == Qt::Key_W) {
         // TODO: jump
     }
 }
@@ -112,8 +122,8 @@ void LevelScene::timeUpdate()
         timerLabel->setText("0:00");
         timer->stop();
         emit levelFail();
+        return;
     }
-
     timer->decrease();
     if(timer->getTime() > 0) {
         QString minutes = QString::number(timer->getTime() / 60);
@@ -130,6 +140,7 @@ void LevelScene::timeUpdate()
         timerLabel->setText(minutes + ":" + seconds);
         if (timer->getTime() <= 10)
             timerLabel->setStyleSheet("QLabel { color : red; }");
+        return;
     }
     else if(timer->getTime() == 0)
     {
@@ -137,5 +148,6 @@ void LevelScene::timeUpdate()
         timerLabel->setText("0:00");
         timer->stop();
         emit levelFail();
+        return;
     }
 }

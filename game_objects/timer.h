@@ -15,7 +15,6 @@ public:
     { return time; }
 
     void setTime(int _time);
-
 private:
     int time;
 };

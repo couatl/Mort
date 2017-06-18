@@ -28,6 +28,9 @@ void Player::walk(bool right)
     {
         x = pos().x()-step;
     }
+
+    if (x < 0)
+        x = 0;
 }
 
 void Player::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
