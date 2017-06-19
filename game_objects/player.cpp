@@ -2,8 +2,6 @@
 
 #include <QPainter>
 
-#include <QDebug>
-
 Player::Player(int _x, int _y, QGraphicsItem *parent) : QGraphicsItem(parent),
     x(_x),
     y(_y),
@@ -25,7 +23,7 @@ void Player::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
     setTransformOriginPoint(boundingRect().center());
     Q_UNUSED(widget);
     Q_UNUSED(option);
-
+  
     y = pos().y() - yAnimation;
 }
 
@@ -53,7 +51,6 @@ void Player::walk(bool right)
     {
         x=pos().x()-step;
     }
-
     if (x < 0)
         x = 0;
 }

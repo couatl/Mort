@@ -26,17 +26,19 @@ public:
     State getState() const { return state; }
 
     QRectF boundingRect() const;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);   
 
     void rotate();
     void setYAnimation(int _yAnimation);
     void setState(State _state);
+    
     void animation();
 
 private:
     QPixmap playerImage;
     QPixmap playerImageRotate;
 
+    QPixmap playerImage, playerImageRotate;
     State state;
 
     int x;

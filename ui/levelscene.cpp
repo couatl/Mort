@@ -7,20 +7,21 @@
 
 LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer, User *_user, QWidget *parent):
     QGraphicsScene(parent),
-    timer(_timer), user(_user),
-    startBlocks(QVector<AbstractBlock*>(10)),
+    timer(_timer),
+    user(_user),
+    startBlocks(QVector<Block*>(10)),
     view(_view),
     timerLabel(_timerLabel),
     yAnimation(0),
     upAnimation(true),
     timerAnimation(new Timer(this, 60, 20)),
     firstInput(false)
-{   
+{
     this->setSceneRect(0, 0, 960, 540);
     QPixmap _background(":/rsc/images/bg.png");
     _background = _background.scaled(543, 540, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
     this->setBackgroundBrush(QBrush(_background));
-
+      
     player = new Player(0, 0);
     this->addItem(player);
 
@@ -40,8 +41,8 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
 
     timerAnimation->moveToThread(QThread::currentThread());
 
-    connect(timerAnimation, &Timer::timeout, this, &LevelScene::playerAnimation);
     connect(timer, &Timer::timeout, this, &LevelScene::timeUpdate);
+    connect(timerAnimation, &Timer::timeout, this, &LevelScene::PlayerAnimation);
     connect(this, &LevelScene::didFirstInput, this, &LevelScene::timerStart);
 }
 
@@ -53,19 +54,20 @@ LevelScene::~LevelScene() {
     delete timerAnimation;
 }
 
-void LevelScene::playerAnimation()
+void LevelScene::PlayerAnimation()
 {
-    if (player->pos().y()>=(540-132)/2)  {
+    if (player->pos().y()>=(540-132)/2)
+    {
         disconnect(timer, &Timer::timeout, this, &LevelScene::timeUpdate);
-        disconnect(timerAnimation, &Timer::timeout, this, &LevelScene::playerAnimation);
+        disconnect(timerAnimation, &Timer::timeout, this, &LevelScene::PlayerAnimation);
         emit levelFail();
     }
 
     //falling
-    int isFall = player->getState() == Player::falling ? 2 : 0;
+    int isFall = player->getState()==Player::falling ? 2 : 0;
 
     //flying animation
-    if (isFall == 0)
+    if (isFall==0)
     {
         if (yAnimation==14 || yAnimation==-14)
         {
@@ -83,9 +85,7 @@ void LevelScene::playerAnimation()
     }
 
     //apply changes
-    player->setPos(player->getX()==player->pos().x() ? player->pos().x() :
-                                                       player->pos().x() + player->getDirection(),
-                   (player->getY() + yAnimation + isFall));
+    player->setPos(player->getX()==player->pos().x() ? player->pos().x() : player->pos().x()+player->getDirection(), (player->getY()+yAnimation+isFall));
 
     if (player->collidingItems().isEmpty())
     {
@@ -106,26 +106,29 @@ void LevelScene::timerStart()
 
 void LevelScene::keyPressEvent(QKeyEvent *event)
 {
-    int key = event->key();
-
     if (!firstInput)  {
         firstInput = true;
         emit didFirstInput();
     }
 
-    if (key == Qt::Key_Right || key == Qt::Key_D) {
+    switch (event->key()) {
+    case Qt::Key_Right:
+    case Qt::Key_D:
         if (player->getDirection() == -1)
             player->rotate();
         player->walk(true);
-    }
-    else if (key == Qt::Key_Left || key == Qt::Key_A) {
+        break;
+    case Qt::Key_Left:
+    case Qt::Key_A:
         if (player->getDirection() == 1)
             player->rotate();
         player->walk(false);
-    }
-    else if (key == Qt::Key_Space || key == Qt::Key_Up ||
-             key == Qt::Key_W) {
+        break;
+    case Qt::Key_Space:
+    case Qt::Key_Up:
+    case Qt::Key_W:
         // TODO: jump
+        break;
     }
 }
 
@@ -154,6 +157,19 @@ void LevelScene::timeUpdate()
         emit levelFail();
         return;
     }
+}
+
+bool LevelScene::intersect(Player* player,QList<QGraphicsItem*> list)
+{
+    for (auto i: list)
+    {
+        if (player->boundingRect().y()*2+player->boundingRect().height() - i->boundingRect().top() <= 3)
+        {
+            qDebug() << player->boundingRect() << i->boundingRect().top();
+            return true;
+        }
+    }
+    return false;
 }
 
 bool LevelScene::intersect(Player* player,QList<QGraphicsItem*> list)
