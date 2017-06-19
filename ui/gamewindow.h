@@ -18,6 +18,7 @@
 //  TODO: настроить коннект для завершения уровня
 //  TODO: баг зависание игрока
 //  TODO: баг свитч после загрузки; если поменять местами, анимация мигает
+//  TODO: добавить посчет скора после заканчивания уровня
 
 namespace Ui {
 class GameWindow;
@@ -31,13 +32,13 @@ public:
     explicit GameWindow(QWidget *parent = 0);
     ~GameWindow();
 
-    void startLoading();
     void clearAll();
     void showAll();
 
 private slots:
     void about();
 
+    void startLoading();
     void endLoading();
     void processLoading();
 
@@ -83,6 +84,7 @@ private:
 
     QVector<Timer*> clock_timers;
     QVector<Clock*> clocks;
+
     QVector<QLabel*> times;
 
     QTimer* timer_message;

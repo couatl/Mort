@@ -2,35 +2,22 @@
 
 #include <QPainter>
 
-Player::Player(QGraphicsItem *parent) : QGraphicsItem(parent)
-{
-    x = 10;
-    y = 147;
-    direction = 1;
+#include <QDebug>
 
+Player::Player(int _x, int _y, QGraphicsItem *parent) : QGraphicsItem(parent),
+    x(_x),
+    y(_y),
+    direction(1),
+    yAnimation(0)
+{
+   // QImage image = QImage(":/rsc/images/Death_Character.png");
     playerImageRotate = QPixmap::fromImage(QImage(":/rsc/images/Death_Character.png").mirrored(true, false));
     playerImageRotate = playerImageRotate.scaled(128, 132, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
 
     playerImage = QPixmap(":/rsc/images/Death_Character.png");
     playerImage = playerImage.scaled(128, 132, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
 
-    setPos(x,y);
-}
-
-void Player::walk(bool right)
-{
-    int step = 25;
-    if (right)
-    {
-        x = pos().x()+step;
-    }
-    else
-    {
-        x = pos().x()-step;
-    }
-
-    if (x < 0)
-        x = 0;
+    this->setPos(x,y);
 }
 
 void Player::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
@@ -38,13 +25,45 @@ void Player::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
     setTransformOriginPoint(boundingRect().center());
     Q_UNUSED(widget);
     Q_UNUSED(option);
-}
 
-void Player::rotate()
-{
-   direction *= -1;
+    y = pos().y() - yAnimation;
 }
 
 QRectF Player::boundingRect() const {
-    return QRectF(pos().x(), pos().y(), 128, 132);
+    return QRectF(pos().x(), pos().y(), 128, 132+2*(14-yAnimation));
 }
+
+void Player::setYAnimation(int _yAnimation)
+{
+    yAnimation = _yAnimation;
+}
+
+void Player::setState(State _state){
+    state = _state;
+}
+
+void Player::walk(bool right)
+{
+    int step = 25;
+    if (right)
+    {
+        x=pos().x()+step;
+    }
+    else
+    {
+        x=pos().x()-step;
+    }
+
+    if (x < 0)
+        x = 0;
+}
+
+void Player::fall()
+{
+    state = falling;
+}
+
+ void Player::rotate()
+ {
+    direction *= -1;
+ }

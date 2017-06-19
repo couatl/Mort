@@ -7,47 +7,33 @@
 class Player : public QGraphicsItem
 {
 public:
-    explicit Player(QGraphicsItem *parent = 0);
+    explicit Player(int _x, int _y, QGraphicsItem *parent = 0);
+
+    enum State {
+        normal,
+        jumping,
+        falling
+    };
 
     void walk(bool right);
 //    void jump();
-//    void fall();
 
-    int getX() const {
-        return x;
-    }
-    int getY() const {
-        return y;
-    }
-    int getDirection() const {
-        return direction;
-    }
-
-    void setX(int _x) {
-        x = _x;
-    }
-    void setY(int _y) {
-        y = _y;
-    }
-    void setXY(int _x, int _y) {
-        x = _x;
-        y = _y;
-    }
+    void fall();
+    int getX() const { return x; }
+    int getY() const { return y; }
+    int getYAnimation() const { return yAnimation; }
+    int getDirection() const { return direction; }
+    State getState() const { return state; }
 
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
     void rotate();
-
-public slots:
+    void setYAnimation(int _yAnimation);
+    void setState(State _state);
     void animation();
 
 private:
-    enum State {
-        stand,
-        move
-    };
-
     QPixmap playerImage;
     QPixmap playerImageRotate;
 
@@ -56,6 +42,7 @@ private:
     int x;
     int y;
     int direction;
+    int yAnimation;
 };
 
 #endif // PLAYER_H

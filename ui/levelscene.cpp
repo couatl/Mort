@@ -7,9 +7,11 @@
 
 LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer, User *_user, QWidget *parent):
     QGraphicsScene(parent),
-    view(_view), timer(_timer),
-    timerLabel(_timerLabel), user(_user),
+    timer(_timer), user(_user),
     startBlocks(QVector<Block*>(4)),
+    //startBlocks(QVector<AbstractBlock*>(10)),
+    view(_view),
+    timerLabel(_timerLabel),
     yAnimation(0),
     upAnimation(true),
     timerAnimation(new Timer(this, 60, 20)),
@@ -20,16 +22,23 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     _background = _background.scaled(543, 540, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
     this->setBackgroundBrush(QBrush(_background));
 
-    player = new Player();
+    player = new Player(0, 0);
     this->addItem(player);
-
-    for (int i = 0; i < 4; i++)  {
-        startBlocks[i] = new Block(0 + i*86, 453);
-        this->addItem(startBlocks[i]);
+    /*
+    // Block Building
+    BlockWaiter waiter;
+    BlockBuilder builder;
+    waiter.setBlockBuilder(&builder);
+    for (int i = 0; i < 10; i++)  {
+        waiter.constructBlock(i*86, 453);
+        startBlocks[i] = waiter.getBlock();
+        addItem(startBlocks[i]);
     }
-
-    broken = new BrokenBlock(startBlocks[3]->boundingRect().topRight().x(), 453);
-    this->addItem(broken);
+*/
+    for (int i = 0; i < 4; i++)  {
+            startBlocks[i] = new Block(0 + i*86, 453);
+            this->addItem(startBlocks[i]);
+    }
 
     QString minutes = QString::number(timer->getTime() / 60);
     QString seconds = "0";
@@ -58,35 +67,53 @@ LevelScene::~LevelScene() {
     for (int i = 0; i < 4; i++)  {
         delete startBlocks[i];
     }
-    delete broken;
     delete timerAnimation;
 }
 
 void LevelScene::playerAnimation()
 {
-    if (yAnimation == 14 || yAnimation == -14)
+    //falling
+    int isFall = player->getState() == Player::falling ? 2 : 0;
+
+    //flying animation
+    if (isFall == 0)
     {
-        upAnimation = !upAnimation;
-    }
-    if (upAnimation)
-    {
-        yAnimation++;
-    }
-    else
-    {
-        yAnimation--;
+        if (yAnimation==14 || yAnimation==-14)
+        {
+            upAnimation = !upAnimation;
+        }
+        if (upAnimation)
+        {
+            yAnimation++;
+        }
+        else
+        {
+            yAnimation--;
+        }
+        player->setYAnimation(yAnimation);
     }
 
-    player->setPos(
-                player->getX() == player->pos().x() ?
-                       player->pos().x() :
-                       player->pos().x() + player->getDirection(),
-                player->getY() + yAnimation);
+    //apply changes
+    player->setPos(player->getX()==player->pos().x() ? player->pos().x() :
+                                                       player->pos().x() + player->getDirection(),
+                   (player->getY() + yAnimation + isFall));
+
+    if (player->collidingItems().isEmpty())
+    {
+        player->setState(Player::falling);
+    }
+    else if (player->getState() == Player::falling)
+    {
+        player->setState(Player::normal);
+    }
+
+    //qDebug() << player->collidingItems();
 }
 
 void LevelScene::timerStart()
 {
     timer->start();
+    disconnect(this, &LevelScene::didFirstInput, this, &LevelScene::timerStart);
 }
 
 void LevelScene::keyPressEvent(QKeyEvent *event)
@@ -96,7 +123,6 @@ void LevelScene::keyPressEvent(QKeyEvent *event)
     if (!firstInput)  {
         firstInput = true;
         emit didFirstInput();
-        disconnect(this, &LevelScene::didFirstInput, this, &LevelScene::timerStart);
     }
 
     if (key == Qt::Key_Right || key == Qt::Key_D) {

@@ -60,8 +60,6 @@ GameWindow::GameWindow(QWidget *parent) :
 
     connect(ui->actionAbout, &QAction::triggered, this, &GameWindow::about);
     connect(this, &GameWindow::clicked_1, this, &GameWindow::launchGame_1);
-    //connect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
-    //connect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
 
     drawBackground();
 
@@ -82,6 +80,7 @@ GameWindow::GameWindow(QWidget *parent) :
     if (!user.exist())
     {
         connect(timer_message, &Timer::timeout, this, &GameWindow::writeMessage);
+        connect(ui->userLineEdit, SIGNAL(returnPressed()), ui->pushButton, SIGNAL(clicked()));
     }
     else
     {
@@ -132,6 +131,9 @@ void GameWindow::launchGame_1()
     scene = new LevelScene(ui->view, ui->timerLabel, clock_timers[0], &user);
 
     startLoading();
+
+    connect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
+    //connect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
 }
 
 void GameWindow::completedGame_1()
@@ -144,7 +146,7 @@ void GameWindow::failedGame_1()
     clocks[0]->setState(Clock::failed);
     clock_timers[0]->setTime(0);
     ui->time_1->setText("0:00");
-
+    startLoading();
 }
 
 void GameWindow::mousePressEvent(QMouseEvent *event)
@@ -390,6 +392,7 @@ void GameWindow::endLoading()
          case 2:
              qDebug() << "case 2";
              //clearScene();
+             showAll();
              ui->stackedWidget->setCurrentIndex(1);
              break;
          }
@@ -435,7 +438,7 @@ void GameWindow::clearAll()
 void GameWindow::showAll()
 {
    for (int i=0; i < 3; i++){
-       clocks[i]->hide();
+       clocks[i]->show();
    }
     ui->clock_1->show();
     ui->clock_2->show();
@@ -454,6 +457,7 @@ void GameWindow::processLoading()
    while (animationEnd->state() != QPropertyAnimation::Stopped) {
      QCoreApplication::processEvents();
    }
+   loading->hide();
 }
 
 void GameWindow::on_pushButton_clicked()
