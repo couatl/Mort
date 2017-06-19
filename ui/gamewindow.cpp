@@ -60,11 +60,8 @@ GameWindow::GameWindow(QWidget *parent) :
 
     connect(ui->actionAbout, &QAction::triggered, this, &GameWindow::about);
     connect(this, &GameWindow::clicked_1, this, &GameWindow::launchGame_1);
-    //connect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
-    //connect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
 
     drawBackground();
-    drawLoading();
 
     // for firstPage
     ui->userLineEdit->setFont(font);
@@ -83,6 +80,7 @@ GameWindow::GameWindow(QWidget *parent) :
     if (!user.exist())
     {
         connect(timer_message, &Timer::timeout, this, &GameWindow::writeMessage);
+        connect(ui->userLineEdit, SIGNAL(returnPressed()), ui->pushButton, SIGNAL(clicked()));
     }
     else
     {
@@ -133,6 +131,9 @@ void GameWindow::launchGame_1()
     scene = new LevelScene(ui->view, ui->timerLabel, clock_timers[0], &user);
 
     startLoading();
+
+    connect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
+    //connect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
 }
 
 void GameWindow::completedGame_1()
@@ -142,10 +143,11 @@ void GameWindow::completedGame_1()
 
 void GameWindow::failedGame_1()
 {
-    clocks[0]->setState(Clock::failed);
+    clocks[0]->MakeFailed();
     clock_timers[0]->setTime(0);
     ui->time_1->setText("0:00");
-
+    ui->time_1->setStyleSheet("QLabel { color : red; }");
+    startLoading();
 }
 
 void GameWindow::mousePressEvent(QMouseEvent *event)
@@ -156,25 +158,36 @@ void GameWindow::mousePressEvent(QMouseEvent *event)
     if (ui->stackedWidget->currentIndex() == 0)
         return;
 
-    if (clocks[0]->underMouse() || clocks[1]->underMouse() || clocks[2]->underMouse()){
+    if (clocks[0]->underMouse() || clocks[1]->underMouse() || clocks[2]->underMouse())  {
         for(int i = 0; i < 3; ++i){
-            if (clocks[i]->underMouse() && clocks[i]->isNormal()) {
-                if(clocks[i]->isFocused())
-                    emit clicked_1();
+            if (clocks[i]->underMouse() && (clocks[i]->IsNormal() || clocks[i]->IsFocused())) {
+                if(clocks[i]->IsFocused()) {
+                    switch (i) {
+                    case 0:
+                        emit clicked_1();
+                        break;
+                    case 1:
+                        //emit clicked_2();
+                        break;
+                    case 2:
+                        //emit clicked_3();
+                        break;
+                    }
+                }
                 else if(id_selected == -1) {
-                    clocks[i]->setFocused();
+                    clocks[i]->MakeHover();
                     id_selected = i;
                 }
                 else {
-                    clocks[id_selected]->deleteFocus();
+                    clocks[id_selected]->MakeNormal();
                     id_selected = i;
-                    clocks[i]->setFocused();
+                    clocks[i]->MakeHover();
                 }
                 }
         }
     } else {
         for(int i = 0; i < 3; ++i)
-           clocks[i]->deleteFocus();
+           clocks[i]->MakeNormal();
     }
 }
 
@@ -265,17 +278,17 @@ void GameWindow::clockWrite()
     xmlWriter.writeStartElement("resources");
     for( int i = 0; i < 3; ++i )  {
         xmlWriter.writeStartElement("clock");
-        switch(clocks[i]->getState()) {
-                case Clock::normal:
+        switch(clocks[i]->GetState()) {
+                case _normal:
                     xmlWriter.writeCharacters("normal");
                     break;
-                case Clock::hover:
+                case _hover:
                     xmlWriter.writeCharacters("normal");
                     break;
-                case Clock::succeed:
+                case _succeed:
                     xmlWriter.writeCharacters("succeed");
                     break;
-                case Clock::failed:
+                case _failed:
                     xmlWriter.writeCharacters("failed");
                     break;
                 }
@@ -296,6 +309,8 @@ void GameWindow::clockRead(bool first_input)
         clocks[1] = new Clock(this);
         clocks[2] = new Clock(this);
 
+        loading->raise();
+
         clock_timers[0] = new Timer(this);
         clock_timers[1] = new Timer(this, 143);
         clock_timers[2] = new Timer(this, 243);
@@ -314,20 +329,20 @@ void GameWindow::clockRead(bool first_input)
             if(xmlReader.name() == "clock"){
                 QString state = xmlReader.readElementText();
                 if(state ==  "normal") {
-                    clocks[i] = new Clock(this, Clock::State::normal);
+                    clocks[i] = new Clock(this, new NormalState());
                 }
                 if(state ==  "hover") {
-                    clocks[i] = new Clock(this, Clock::State::hover);
+                    clocks[i] = new Clock(this, new HoverState());
                 }
                 if(state ==  "succeed") {
-                    clocks[i] = new Clock(this, Clock::State::succeed);
+                    clocks[i] = new Clock(this, new SucceedState());
                 }
                 if(state ==  "failed") {
-                    clocks[i] = new Clock(this, Clock::State::failed);
+                    clocks[i] = new Clock(this, new FailedState());
                 }
             }
             if(xmlReader.name() == "timer"){
-            clock_timers[i++] = new Timer(this, xmlReader.readElementText().toInt());
+                clock_timers[i++] = new Timer(this, xmlReader.readElementText().toInt());
             }
 
         }
@@ -367,7 +382,7 @@ void GameWindow::endLoading()
     connect(workerThread, &QThread::started, this, &GameWindow::processLoading);
     connect(animationEnd, &QPropertyAnimation::finished, workerThread, &QThread::quit);
     connect(workerThread, &QThread::finished, animationEnd, &QPropertyAnimation::deleteLater);
-
+    connect(animationEnd, &QPropertyAnimation::destroyed, workerThread, &QThread::deleteLater);
     workerThread->start();
 
     switch(ui->stackedWidget->currentIndex()){
@@ -389,6 +404,7 @@ void GameWindow::endLoading()
          case 2:
              qDebug() << "case 2";
              //clearScene();
+             showAll();
              ui->stackedWidget->setCurrentIndex(1);
              break;
          }
@@ -399,6 +415,8 @@ void GameWindow::endLoading()
 
 void GameWindow::startLoading()
 {
+    drawLoading();
+
     // "появление"
     loading->show();
     QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(this);
@@ -431,8 +449,8 @@ void GameWindow::clearAll()
 
 void GameWindow::showAll()
 {
-   for (int i=0;i<3;i++){
-       clocks[i]->hide();
+   for (int i=0; i < 3; i++){
+       clocks[i]->show();
    }
     ui->clock_1->show();
     ui->clock_2->show();
@@ -447,9 +465,11 @@ void GameWindow::showAll()
 
 void GameWindow::processLoading()
 {
-   animationEnd->start(QPropertyAnimation::DeleteWhenStopped);
-   while (animationEnd->state() != QPropertyAnimation::Stopped)
+   animationEnd->start();
+   while (animationEnd->state() != QPropertyAnimation::Stopped) {
      QCoreApplication::processEvents();
+   }
+   loading->hide();
 }
 
 void GameWindow::on_pushButton_clicked()

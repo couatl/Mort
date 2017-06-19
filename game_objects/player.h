@@ -17,6 +17,8 @@ public:
 
     void walk(bool right);
 //    void jump();
+
+    void fall();
     int getX() const { return x; }
     int getY() const { return y; }
     int getYAnimation() const { return yAnimation; }
@@ -29,16 +31,20 @@ public:
     void rotate();
     void setYAnimation(int _yAnimation);
     void setState(State _state);
-
-public slots:
+    
     void animation();
 
 private:
-
-    int x,y, direction, yAnimation;
+    QPixmap playerImage;
+    QPixmap playerImageRotate;
 
     QPixmap playerImage, playerImageRotate;
     State state;
+
+    int x;
+    int y;
+    int direction;
+    int yAnimation;
 };
 
 #endif // PLAYER_H

@@ -23,8 +23,8 @@ void Player::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
     setTransformOriginPoint(boundingRect().center());
     Q_UNUSED(widget);
     Q_UNUSED(option);
-
-    y=pos().y() - yAnimation;
+  
+    y = pos().y() - yAnimation;
 }
 
 QRectF Player::boundingRect() const {
@@ -51,9 +51,13 @@ void Player::walk(bool right)
     {
         x=pos().x()-step;
     }
+    if (x < 0)
+        x = 0;
+}
 
-    if (x<0)
-        x=0;
+void Player::fall()
+{
+    state = falling;
 }
 
  void Player::rotate()

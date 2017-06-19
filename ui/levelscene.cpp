@@ -1,6 +1,8 @@
 #include "levelscene.h"
 
 #include <QPalette>
+#include <QThread>
+
 #include <QDebug>
 
 LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer, User *_user, QWidget *parent):
@@ -12,42 +14,32 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     timerLabel(_timerLabel),
     yAnimation(0),
     upAnimation(true),
-    timerAnimation(new Timer(nullptr, 60, 20)),
+    timerAnimation(new Timer(this, 60, 20)),
     firstInput(false)
 {
     this->setSceneRect(0, 0, 960, 540);
     QPixmap _background(":/rsc/images/bg.png");
     _background = _background.scaled(543, 540, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
     this->setBackgroundBrush(QBrush(_background));
-
-    for (int i = 0; i < 10; i++)  {
-        int j = i<4 ? i : i+2;
-        startBlocks[i] = new Block(0 + j*86, 453);
-        this->addItem(startBlocks[i]);
-    }
-
-    broken = new BrokenBlock(startBlocks[3]->boundingRect().topRight().x(), 453);
-    this->addItem(broken);
-
-    QString minutes = QString::number(timer->getTime() / 60);
-    QString seconds = "0";
-    if (timer->getTime() % 60 >= 10)
-    {
-        seconds = QString::number(timer->getTime() % 60);
-    }
-    else
-    {
-        seconds += QString::number(timer->getTime() % 60);
-    }
-
-    this->addItem(new Block(50,250));
-
+      
     player = new Player(0, 0);
     this->addItem(player);
 
-    timerLabel->setText(minutes + ":" + seconds);
+    // Block Building
+    BlockWaiter waiter;
+    BlockBuilder builder;
+    waiter.setBlockBuilder(&builder);
+    for (int i = 0; i < 10; i++)  {
+        waiter.constructBlock(i*86, 453);
+        startBlocks[i] = waiter.getBlock();
+        addItem(startBlocks[i]);
+    }
+
+    timerLabel->setText(timer->getDecoratedTime());
     if (timer->getTime() <= 10)
         timerLabel->setStyleSheet("QLabel { color : red; }");
+
+    timerAnimation->moveToThread(QThread::currentThread());
 
     connect(timer, &Timer::timeout, this, &LevelScene::timeUpdate);
     connect(timerAnimation, &Timer::timeout, this, &LevelScene::PlayerAnimation);
@@ -57,9 +49,8 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
 LevelScene::~LevelScene() {
     delete player;
     for (int i = 0; i < 4; i++)  {
-              delete startBlocks[i];
-          }
-    delete broken;
+        delete startBlocks[i];
+    }
     delete timerAnimation;
 }
 
@@ -105,8 +96,6 @@ void LevelScene::PlayerAnimation()
         if (intersect(player, player->collidingItems()))
            player->setState(Player::normal);
     }
-
-    //qDebug() << player->collidingItems();
 }
 
 void LevelScene::timerStart()
@@ -137,7 +126,8 @@ void LevelScene::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_Space:
     case Qt::Key_Up:
-        //jump()
+    case Qt::Key_W:
+        // TODO: jump
         break;
     }
 }
@@ -154,20 +144,10 @@ void LevelScene::timeUpdate()
 
     timer->decrease();
     if(timer->getTime() > 0) {
-        QString minutes = QString::number(timer->getTime() / 60);
-        QString seconds = "0";
-        if (timer->getTime() % 60 >= 10)
-        {
-            seconds = QString::number(timer->getTime() % 60);
-        }
-        else
-        {
-            seconds += QString::number(timer->getTime() % 60);
-        }
-
-        timerLabel->setText(minutes + ":" + seconds);
+        timerLabel->setText(timer->getDecoratedTime());
         if (timer->getTime() <= 10)
             timerLabel->setStyleSheet("QLabel { color : red; }");
+        return;
     }
     else if(timer->getTime() == 0)
     {
@@ -175,7 +155,21 @@ void LevelScene::timeUpdate()
         timerLabel->setText("0:00");
         timer->stop();
         emit levelFail();
+        return;
     }
+}
+
+bool LevelScene::intersect(Player* player,QList<QGraphicsItem*> list)
+{
+    for (auto i: list)
+    {
+        if (player->boundingRect().y()*2+player->boundingRect().height() - i->boundingRect().top() <= 3)
+        {
+            qDebug() << player->boundingRect() << i->boundingRect().top();
+            return true;
+        }
+    }
+    return false;
 }
 
 bool LevelScene::intersect(Player* player,QList<QGraphicsItem*> list)
