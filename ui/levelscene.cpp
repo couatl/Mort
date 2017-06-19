@@ -8,8 +8,7 @@
 LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer, User *_user, QWidget *parent):
     QGraphicsScene(parent),
     timer(_timer), user(_user),
-    startBlocks(QVector<Block*>(4)),
-    //startBlocks(QVector<AbstractBlock*>(10)),
+    startBlocks(QVector<AbstractBlock*>(10)),
     view(_view),
     timerLabel(_timerLabel),
     yAnimation(0),
@@ -24,7 +23,7 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
 
     player = new Player(0, 0);
     this->addItem(player);
-    /*
+
     // Block Building
     BlockWaiter waiter;
     BlockBuilder builder;
@@ -34,7 +33,7 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
         startBlocks[i] = waiter.getBlock();
         addItem(startBlocks[i]);
     }
-*/
+
     for (int i = 0; i < 4; i++)  {
             startBlocks[i] = new Block(0 + i*86, 453);
             this->addItem(startBlocks[i]);

@@ -11,9 +11,10 @@
 #include "../game_objects/timer.h"
 #include "../game_objects/user.h"
 #include "../game_objects/player.h"
-#include "../game_objects/block.h"
 #include "../game_objects/goal.h"
-#include "../game_objects/brokenblock.h"
+
+#include "../game_objects/blockbuilder.h"
+#include "../game_objects/blockwaiter.h"
 
 #include "level.h"
 
@@ -45,10 +46,8 @@ private:
 
     bool hasKey;
 
-    // 4 start blocks for all levels
-    QVector<Block*> startBlocks;
-
-    BrokenBlock* broken;
+    // Blocks for all levels
+    QVector<AbstractBlock*> startBlocks;
 
     // to get timer label
     QGraphicsView* view;
