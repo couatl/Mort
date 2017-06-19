@@ -5,8 +5,8 @@
 #include <QGraphicsView>
 #include <QGraphicsPixmapItem>
 #include <QLabel>
-#include <QVector>
 #include <QKeyEvent>
+
 
 #include "../game_objects/timer.h"
 #include "../game_objects/user.h"
@@ -22,7 +22,6 @@ class LevelScene : public QGraphicsScene
     Q_OBJECT
 public:
     explicit LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer* _timer, User* _user, QWidget *parent = 0);
-//    explicit LevelScene(int level_id, QGraphicsView* _view, Timer* _timer, User* _user, QWidget *parent = 0);
     ~LevelScene();
 
 signals:
@@ -32,13 +31,15 @@ signals:
 
 public slots:
     void timeUpdate();
-    void playerAnimation();
+    void PlayerAnimation();
     void timerStart();
 
 protected:
     void keyPressEvent(QKeyEvent *event);
 
 private:
+    bool intersect(Player* player, QList<QGraphicsItem*> list);
+
     Timer* timer;
     User* user;
     Player* player;

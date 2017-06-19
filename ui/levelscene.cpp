@@ -40,6 +40,8 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
         seconds += QString::number(timer->getTime() % 60);
     }
 
+    this->addItem(new Block(50,250));
+
     player = new Player(0, 0);
     this->addItem(player);
 
@@ -63,6 +65,13 @@ LevelScene::~LevelScene() {
 
 void LevelScene::PlayerAnimation()
 {
+    if (player->pos().y()>=(540-132)/2)
+    {
+        disconnect(timer, &Timer::timeout, this, &LevelScene::timeUpdate);
+        disconnect(timerAnimation, &Timer::timeout, this, &LevelScene::PlayerAnimation);
+        emit levelFail();
+    }
+
     //falling
     int isFall = player->getState()==Player::falling ? 2 : 0;
 
@@ -93,7 +102,8 @@ void LevelScene::PlayerAnimation()
     }
     else if (player->getState() == Player::falling)
     {
-        player->setState(Player::normal);
+        if (intersect(player, player->collidingItems()))
+           player->setState(Player::normal);
     }
 
     //qDebug() << player->collidingItems();
@@ -166,4 +176,17 @@ void LevelScene::timeUpdate()
         timer->stop();
         emit levelFail();
     }
+}
+
+bool LevelScene::intersect(Player* player,QList<QGraphicsItem*> list)
+{
+    for (auto i: list)
+    {
+        if (player->boundingRect().y()*2+player->boundingRect().height() - i->boundingRect().top() <= 3)
+        {
+            qDebug() << player->boundingRect() << i->boundingRect().top();
+            return true;
+        }
+    }
+    return false;
 }
