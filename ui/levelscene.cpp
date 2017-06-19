@@ -34,11 +34,6 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
         addItem(startBlocks[i]);
     }
 
-    for (int i = 0; i < 4; i++)  {
-            startBlocks[i] = new Block(0 + i*86, 453);
-            this->addItem(startBlocks[i]);
-    }
-
     QString minutes = QString::number(timer->getTime() / 60);
     QString seconds = "0";
     if (timer->getTime() % 60 >= 10)

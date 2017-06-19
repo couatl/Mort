@@ -32,7 +32,6 @@ SOURCES += \
         ui/gamewindow.cpp \
     game_objects/user.cpp \
     ui/aboutdialog.cpp \
-    game_objects/clock.cpp \
     game_objects/timer.cpp \
     ui/levelscene.cpp \
     game_objects/player.cpp \
