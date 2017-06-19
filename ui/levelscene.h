@@ -40,6 +40,8 @@ protected:
     void keyPressEvent(QKeyEvent *event);
 
 private:
+    bool intersect(Player* player, QList<QGraphicsItem*> list);
+
     Timer* timer;
     User* user;
     Player* player;

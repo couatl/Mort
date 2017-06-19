@@ -34,18 +34,7 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
         addItem(startBlocks[i]);
     }
 
-    QString minutes = QString::number(timer->getTime() / 60);
-    QString seconds = "0";
-    if (timer->getTime() % 60 >= 10)
-    {
-        seconds = QString::number(timer->getTime() % 60);
-    }
-    else
-    {
-        seconds += QString::number(timer->getTime() % 60);
-    }
-
-    timerLabel->setText(minutes + ":" + seconds);
+    timerLabel->setText(timer->getDecoratedTime());
     if (timer->getTime() <= 10)
         timerLabel->setStyleSheet("QLabel { color : red; }");
 
@@ -66,6 +55,12 @@ LevelScene::~LevelScene() {
 
 void LevelScene::playerAnimation()
 {
+    if (player->pos().y()>=(540-132)/2)  {
+        disconnect(timer, &Timer::timeout, this, &LevelScene::timeUpdate);
+        disconnect(timerAnimation, &Timer::timeout, this, &LevelScene::playerAnimation);
+        emit levelFail();
+    }
+
     //falling
     int isFall = player->getState() == Player::falling ? 2 : 0;
 
@@ -98,10 +93,9 @@ void LevelScene::playerAnimation()
     }
     else if (player->getState() == Player::falling)
     {
-        player->setState(Player::normal);
+        if (intersect(player, player->collidingItems()))
+           player->setState(Player::normal);
     }
-
-    //qDebug() << player->collidingItems();
 }
 
 void LevelScene::timerStart()
@@ -144,20 +138,10 @@ void LevelScene::timeUpdate()
         emit levelFail();
         return;
     }
+
     timer->decrease();
     if(timer->getTime() > 0) {
-        QString minutes = QString::number(timer->getTime() / 60);
-        QString seconds = "0";
-        if (timer->getTime() % 60 >= 10)
-        {
-            seconds = QString::number(timer->getTime() % 60);
-        }
-        else
-        {
-            seconds += QString::number(timer->getTime() % 60);
-        }
-
-        timerLabel->setText(minutes + ":" + seconds);
+        timerLabel->setText(timer->getDecoratedTime());
         if (timer->getTime() <= 10)
             timerLabel->setStyleSheet("QLabel { color : red; }");
         return;
@@ -170,4 +154,17 @@ void LevelScene::timeUpdate()
         emit levelFail();
         return;
     }
+}
+
+bool LevelScene::intersect(Player* player,QList<QGraphicsItem*> list)
+{
+    for (auto i: list)
+    {
+        if (player->boundingRect().y()*2+player->boundingRect().height() - i->boundingRect().top() <= 3)
+        {
+            qDebug() << player->boundingRect() << i->boundingRect().top();
+            return true;
+        }
+    }
+    return false;
 }

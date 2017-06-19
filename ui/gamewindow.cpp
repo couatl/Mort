@@ -146,6 +146,7 @@ void GameWindow::failedGame_1()
     clocks[0]->MakeFailed();
     clock_timers[0]->setTime(0);
     ui->time_1->setText("0:00");
+    ui->time_1->setStyleSheet("QLabel { color : red; }");
     startLoading();
 }
 

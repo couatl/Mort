@@ -11,8 +11,9 @@ public:
     Timer(QObject* parent = nullptr, int _time = 61, int _period = 1000);
     void decrease();
 
-    int getTime() const
+    inline int getTime() const
     { return time; }
+    QString getDecoratedTime();
 
     void setTime(int _time);
 private:
