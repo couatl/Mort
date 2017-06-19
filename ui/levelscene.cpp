@@ -9,7 +9,7 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     QGraphicsScene(parent),
     timer(_timer),
     user(_user),
-    startBlocks(QVector<Block*>(10)),
+    startBlocks(QVector<AbstractBlock*>(10)),
     view(_view),
     timerLabel(_timerLabel),
     yAnimation(0),
@@ -157,19 +157,6 @@ void LevelScene::timeUpdate()
         emit levelFail();
         return;
     }
-}
-
-bool LevelScene::intersect(Player* player,QList<QGraphicsItem*> list)
-{
-    for (auto i: list)
-    {
-        if (player->boundingRect().y()*2+player->boundingRect().height() - i->boundingRect().top() <= 3)
-        {
-            qDebug() << player->boundingRect() << i->boundingRect().top();
-            return true;
-        }
-    }
-    return false;
 }
 
 bool LevelScene::intersect(Player* player,QList<QGraphicsItem*> list)

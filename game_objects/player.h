@@ -38,7 +38,6 @@ private:
     QPixmap playerImage;
     QPixmap playerImageRotate;
 
-    QPixmap playerImage, playerImageRotate;
     State state;
 
     int x;
