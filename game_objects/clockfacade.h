@@ -29,11 +29,12 @@ public:
     void succeed(int index);
     void stop(int index);
     int time(int index);
+    int getState(int index);
 
     QVector<Timer*> clock_timers;
 
 private:
-        QVector<Clock*> clocks;
+    QVector<Clock*> clocks;
 };
 
 #endif // CLOCKFACADE_H

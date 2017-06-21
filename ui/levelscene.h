@@ -3,18 +3,12 @@
 
 #include <QGraphicsScene>
 #include <QGraphicsView>
-#include <QGraphicsPixmapItem>
 #include <QLabel>
 #include <QKeyEvent>
+#include <QXmlStreamReader>
 
 #include "../game_objects/timer.h"
 #include "../game_objects/user.h"
-#include "../game_objects/player.h"
-#include "../game_objects/goal.h"
-
-#include "../game_objects/blockbuilder.h"
-#include "../game_objects/blockwaiter.h"
-#include "../game_objects/brokenblockbuilder.h"
 
 #include "level.h"
 
@@ -40,8 +34,7 @@ protected:
     void keyPressEvent(QKeyEvent *event);
 
 private:
-    //  Для отрисовки окна окончания уровня
-    void drawPanel(int x, int y, int width, int height, QColor color, double opacity, int flag);
+    //  Отрисовка окна окончания уровня
     void displayGameOverWindow(QString textToDisplay);
 
     //  Проверка на коллизии с блоками
@@ -55,9 +48,6 @@ private:
     bool isWin;
     bool hasKey;
     bool firstInput;
-
-    // Вектор абстрактных блоков для каждого уровня
-    QVector<AbstractBlock*> startBlocks;
 
     // Храним указатель для доступа к timerLabel
     QGraphicsView* view;

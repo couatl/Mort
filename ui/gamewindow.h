@@ -31,8 +31,8 @@ public:
     explicit GameWindow(QWidget *parent = 0);
     ~GameWindow();
 
-    void clearAll();
-    void showAll();
+    void hideClocks();
+    void showClocks();
 
 private slots:
     void about();

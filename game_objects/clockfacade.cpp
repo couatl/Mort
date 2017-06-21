@@ -170,3 +170,8 @@ int ClockFacade::time(int index)
 {
     return clock_timers[index]->getTime();
 }
+
+int ClockFacade::getState(int index)
+{
+    return clocks[index]->GetState();
+}
