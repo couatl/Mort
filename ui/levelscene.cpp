@@ -32,7 +32,7 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     player = new Player(0, 150);
     this->addItem(player);
 
-    goal = new Goal(300, 155);
+    goal = new Goal(800, 155);
     this->addItem(goal);
 
     // Block Building

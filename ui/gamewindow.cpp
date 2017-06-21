@@ -127,6 +127,10 @@ void GameWindow::launchGame_1()
 void GameWindow::completedGame_1()
 {
     clockFacade->succeed(0);
+    ui->time_1->setText(clockFacade->clock_timers[0]->getDecoratedTime());
+    ui->time_1->setStyleSheet("QLabel { color : green; }");
+    user.setScore(user.getScore() + clockFacade->time(0)*10);
+    ui->score->setText("Score: " + QString::number(user.getScore()));
     startLoading();
 }
 

@@ -37,9 +37,9 @@ SOURCES += \
     game_objects/player.cpp \
     game_objects/goal.cpp \
     ui/level.cpp \
-    game_objects/brokenblock.cpp \
     game_objects/abstractblock.cpp \
-    game_objects/blockbuilder.cpp
+    game_objects/clockfacade.cpp \
+    ui/button.cpp
 
 HEADERS += \
         ui/gamewindow.h \
@@ -51,11 +51,13 @@ HEADERS += \
     game_objects/player.h \
     game_objects/goal.h \
     ui/level.h \
-    game_objects/brokenblock.h \
     game_objects/abstractblock.h \
     game_objects/abstractblockbuilder.h \
     game_objects/blockbuilder.h \
-    game_objects/blockwaiter.h
+    game_objects/blockwaiter.h \
+    game_objects/brokenblockbuilder.h \
+    game_objects/clockfacade.h \
+    ui/button.h
 
 FORMS += \
         ui/gamewindow.ui \
