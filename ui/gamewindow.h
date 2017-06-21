@@ -11,6 +11,8 @@
 #include "../game_objects/timer.h"
 #include "../game_objects/clock.h"
 
+#include "../game_objects/clockfacade.h"
+
 //  TODO: Гор побольше
 //  TODO: Песок на часах failed
 //  TODO: поменять succeed
@@ -69,7 +71,7 @@ private:
 
     // Clocks writing/reading from file
     void clockWrite();
-    void clockRead(bool first_input);
+    void clockRead();
 
     void writeMessage();
 
@@ -82,8 +84,7 @@ private:
 
     int id_selected;
 
-    QVector<Timer*> clock_timers;
-    QVector<Clock*> clocks;
+    ClockFacade* clockFacade;
 
     QVector<QLabel*> times;
 

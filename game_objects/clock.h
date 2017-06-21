@@ -7,6 +7,8 @@
 #include <QFile>
 #include <QTextStream>
 
+//      State pattern
+
 #define _normal 1
 #define _hover 2
 #define _succeed 3

@@ -5,13 +5,10 @@
 #include <QFontDatabase>
 #include <QFont>
 #include <QTextStream>
-#include <QFile>
 #include <QMouseEvent>
 #include <QLabel>
 #include <QPropertyAnimation>
 #include <QGraphicsOpacityEffect>
-#include <QXmlStreamReader>
-#include <QXmlStreamWriter>
 #include <QColor>
 #include <QThread>
 
@@ -34,8 +31,7 @@ GameWindow::GameWindow(QWidget *parent) :
     ui(new Ui::GameWindow),
     user(User()),
     id_selected(-1),
-    clock_timers(QVector<Timer*>(3)),
-    clocks(QVector<Clock*>(3)),
+    clockFacade(new ClockFacade()),
     times(QVector<QLabel*>(3)),
     timer_message(new Timer(nullptr, 60, 300)),
     loading(new QLabel(this))
@@ -84,7 +80,7 @@ GameWindow::GameWindow(QWidget *parent) :
     }
     else
     {
-        clockRead(!user.exist());
+        clockRead();
         drawClocks();
         drawShelf();
         drawLoading();
@@ -106,14 +102,6 @@ GameWindow::~GameWindow()
     delete timer_message;
     delete scene;
 
-    for (auto i = clock_timers.begin(); i != clock_timers.end(); ++i) {
-        delete *i;
-    }
-
-    for (auto i = clocks.begin(); i != clocks.end(); ++i) {
-        delete *i;
-    }
-
     delete ui;
 }
 
@@ -127,8 +115,8 @@ void GameWindow::launchGame_1()
 {
     qDebug() << "launch game 1";
 
-    clock_timers[0]->stop();
-    scene = new LevelScene(ui->view, ui->timerLabel, clock_timers[0], &user);
+    clockFacade->stop(0);
+    scene = new LevelScene(ui->view, ui->timerLabel, clockFacade->clock_timers[0], &user);
 
     startLoading();
 
@@ -143,8 +131,7 @@ void GameWindow::completedGame_1()
 
 void GameWindow::failedGame_1()
 {
-    clocks[0]->MakeFailed();
-    clock_timers[0]->setTime(0);
+    clockFacade->fail(0);
     ui->time_1->setText("0:00");
     ui->time_1->setStyleSheet("QLabel { color : red; }");
     startLoading();
@@ -158,48 +145,23 @@ void GameWindow::mousePressEvent(QMouseEvent *event)
     if (ui->stackedWidget->currentIndex() == 0)
         return;
 
-    if (clocks[0]->underMouse() || clocks[1]->underMouse() || clocks[2]->underMouse())  {
-        for(int i = 0; i < 3; ++i){
-            if (clocks[i]->underMouse() && (clocks[i]->IsNormal() || clocks[i]->IsFocused())) {
-                if(clocks[i]->IsFocused()) {
-                    switch (i) {
-                    case 0:
-                        emit clicked_1();
-                        break;
-                    case 1:
-                        //emit clicked_2();
-                        break;
-                    case 2:
-                        //emit clicked_3();
-                        break;
-                    }
-                }
-                else if(id_selected == -1) {
-                    clocks[i]->MakeHover();
-                    id_selected = i;
-                }
-                else {
-                    clocks[id_selected]->MakeNormal();
-                    id_selected = i;
-                    clocks[i]->MakeHover();
-                }
-                }
-        }
-    } else {
-        for(int i = 0; i < 3; ++i)
-           clocks[i]->MakeNormal();
+    switch (clockFacade->press(id_selected)) {
+    case 0:
+        emit clicked_1();
+        break;
+    case 1:
+        emit clicked_2();
+        break;
+    case 2:
+        emit clicked_3();
+        break;
     }
+
 }
 
 void GameWindow::drawClocks()
 {
-    for (int i = 0; i < 3; i++) {
-        clocks[i]->setVisible(true);
-    }
-
-    clocks[0]->setGeometry(230, 150, 145, 237);
-    clocks[1]->setGeometry(410, 150, 145, 237);
-    clocks[2]->setGeometry(590, 150, 145, 237);
+    clockFacade->draw();
 
     QPalette palette;
     palette.setColor(QPalette::WindowText, Qt::white);
@@ -207,23 +169,12 @@ void GameWindow::drawClocks()
     for (int i = 0; i < 3; i++) {
         times[i]->setFont(font);
         times[i]->setPalette(palette);
-        QString minutes = QString::number(clock_timers[i]->getTime() / 60);
-        QString seconds = "0";
-        if (clock_timers[i]->getTime() % 60 >= 10)
-        {
-            seconds = QString::number(clock_timers[i]->getTime() % 60);
-        }
-        else
-        {
-            seconds += QString::number(clock_timers[i]->getTime() % 60);
-        }
 
-        times[i]->setText(minutes + ":" + seconds);
-        if (clock_timers[i]->getTime() <= 10)
+        if (clockFacade->time(i) <= 10)
             times[i]->setStyleSheet("QLabel { color : red; }");
+        times[i]->setText(clockFacade->clock_timers[i]->getDecoratedTime());
     }
 
-    //TODO: delete
     QGraphicsDropShadowEffect *effLabel = new QGraphicsDropShadowEffect(this);
     QGraphicsDropShadowEffect *effScore = new QGraphicsDropShadowEffect(this);
     ui->label->setGraphicsEffect(ShadowEffect(effLabel));
@@ -269,88 +220,13 @@ void GameWindow::drawShelf()
 
 void GameWindow::clockWrite()
 {
-    QFile file(filepath + "clocks.xml");
-
-    file.open(QIODevice::WriteOnly);
-    QXmlStreamWriter xmlWriter(&file);
-    xmlWriter.setAutoFormatting(true);
-    xmlWriter.writeStartDocument();
-    xmlWriter.writeStartElement("resources");
-    for( int i = 0; i < 3; ++i )  {
-        xmlWriter.writeStartElement("clock");
-        switch(clocks[i]->GetState()) {
-                case _normal:
-                    xmlWriter.writeCharacters("normal");
-                    break;
-                case _hover:
-                    xmlWriter.writeCharacters("normal");
-                    break;
-                case _succeed:
-                    xmlWriter.writeCharacters("succeed");
-                    break;
-                case _failed:
-                    xmlWriter.writeCharacters("failed");
-                    break;
-                }
-        xmlWriter.writeEndElement();
-        xmlWriter.writeStartElement("timer");
-        xmlWriter.writeCharacters(QString::number(clock_timers[i]->getTime()));
-        xmlWriter.writeEndElement();
-    }
-    xmlWriter.writeEndElement();
-    xmlWriter.writeEndDocument();
-    file.close();
+    clockFacade->write();
 }
 
-void GameWindow::clockRead(bool first_input)
+void GameWindow::clockRead()
 {
-    if (first_input) {
-        clocks[0] = new Clock(this);
-        clocks[1] = new Clock(this);
-        clocks[2] = new Clock(this);
-
-        loading->raise();
-
-        clock_timers[0] = new Timer(this);
-        clock_timers[1] = new Timer(this, 143);
-        clock_timers[2] = new Timer(this, 243);
-        return;
-    } else  {
-
-    QFile file(filepath + "clocks.xml");
-
-    file.open(QIODevice::ReadOnly | QFile::Text);
-    QXmlStreamReader xmlReader;
-    xmlReader.setDevice(&file);
-    xmlReader.readNext();
-    int i = 0;
-    while(!xmlReader.atEnd()){
-        if(xmlReader.isStartElement()){
-            if(xmlReader.name() == "clock"){
-                QString state = xmlReader.readElementText();
-                if(state ==  "normal") {
-                    clocks[i] = new Clock(this, new NormalState());
-                }
-                if(state ==  "hover") {
-                    clocks[i] = new Clock(this, new HoverState());
-                }
-                if(state ==  "succeed") {
-                    clocks[i] = new Clock(this, new SucceedState());
-                }
-                if(state ==  "failed") {
-                    clocks[i] = new Clock(this, new FailedState());
-                }
-            }
-            if(xmlReader.name() == "timer"){
-                clock_timers[i++] = new Timer(this, xmlReader.readElementText().toInt());
-            }
-
-        }
-            xmlReader.readNext();
-        }
-
-    file.close();
-    }
+    clockFacade->read(this);
+    loading->raise();
 }
 
 void GameWindow::writeMessage()  {
@@ -388,7 +264,7 @@ void GameWindow::endLoading()
     switch(ui->stackedWidget->currentIndex()){
          case 0:
              qDebug() << "case 0";
-             clockRead(!user.exist());
+             clockRead();
              ui->stackedWidget->setCurrentIndex(1);
              drawBackground();
              drawShelf();
@@ -433,9 +309,7 @@ void GameWindow::startLoading()
 
 void GameWindow::clearAll()
 {
-    for (int i = 0; i < 3; i++) {
-        clocks[i]->hide();
-    }
+    clockFacade->hide();
     ui->clock_1->hide();
     ui->clock_2->hide();
     ui->clock_3->hide();
@@ -449,9 +323,7 @@ void GameWindow::clearAll()
 
 void GameWindow::showAll()
 {
-   for (int i=0; i < 3; i++){
-       clocks[i]->show();
-   }
+    clockFacade->show();
     ui->clock_1->show();
     ui->clock_2->show();
     ui->clock_3->show();
