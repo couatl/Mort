@@ -1,7 +1,11 @@
 #include "levelscene.h"
+#include "button.h"
 
 #include <QPalette>
 #include <QThread>
+#include <QFontDatabase>
+#include <QFont>
+#include <QPushButton>
 
 #include <QDebug>
 
@@ -9,13 +13,15 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     QGraphicsScene(parent),
     timer(_timer),
     user(_user),
-    startBlocks(QVector<AbstractBlock*>(13)),
+    isWin(false),
+    hasKey(false),
+    firstInput(false),
+    startBlocks(QVector<AbstractBlock*>(24)),
     view(_view),
     timerLabel(_timerLabel),
     yAnimation(0),
     upAnimation(true),
-    timerAnimation(new Timer(this, 60, 20)),
-    firstInput(false)
+    timerAnimation(new Timer(this, 60, 20))
 {
     // ширина равна 86 (ширина 1 блока) * 24
     this->setSceneRect(0, 0, 2064, 520);
@@ -23,8 +29,11 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     _background = _background.scaled(543, 540, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
     this->setBackgroundBrush(QBrush(_background));
       
-    player = new Player(0, 0);
+    player = new Player(0, 150);
     this->addItem(player);
+
+    goal = new Goal(100, 150);
+    this->addItem(goal);
 
     // Block Building
     BlockWaiter waiter;
@@ -44,12 +53,12 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     startBlocks[9] = blockList.last();
     addItem(startBlocks[8]);
     addItem(startBlocks[9]);
-    waiter.constructBlock(11*86, 453);
-    blockList = waiter.getBlock();
-    startBlocks[10] = blockList.first();
-    startBlocks[11] = blockList.last();
-    addItem(startBlocks[10]);
-    addItem(startBlocks[11]);
+    waiter.setBlockBuilder(&builder);
+    for (int i = 11; i < 24; i++)  {
+        waiter.constructBlock(i*86, 453);
+        startBlocks[i] = waiter.getBlock().first();
+        addItem(startBlocks[i]);
+    }
 
     timerLabel->setText(timer->getDecoratedTime());
     if (timer->getTime() <= 10)
@@ -64,6 +73,7 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
 
 LevelScene::~LevelScene() {
     delete player;
+    delete goal;
     for (int i = 0; i < 4; i++)  {
         delete startBlocks[i];
     }
@@ -76,13 +86,13 @@ void LevelScene::PlayerAnimation()
     {
         disconnect(timer, &Timer::timeout, this, &LevelScene::timeUpdate);
         disconnect(timerAnimation, &Timer::timeout, this, &LevelScene::PlayerAnimation);
-        emit levelFail();
+        displayGameOverWindow("I am disappointed.");
     }
 
-    //falling
+    //  falling
     int isFall = player->getState()==Player::falling ? 2 : 0;
 
-    //flying animation
+    //  flying animation
     if (isFall==0)
     {
         if (yAnimation==14 || yAnimation==-14)
@@ -100,7 +110,7 @@ void LevelScene::PlayerAnimation()
         player->setYAnimation(yAnimation);
     }
 
-    //apply changes
+    //  apply changes
     player->setPos(player->getX()==player->pos().x() ? player->pos().x() : player->pos().x()+player->getDirection(), (player->getY()+yAnimation+isFall));
 
     if (player->collidingItems().isEmpty())
@@ -112,12 +122,30 @@ void LevelScene::PlayerAnimation()
         if (intersect(player, player->collidingItems()))
            player->setState(Player::normal);
     }
+    else if (player->collidesWithItem(goal)) {
+        isWin = true;
+        disconnect(timer, &Timer::timeout, this, &LevelScene::timeUpdate);
+        disconnect(timerAnimation, &Timer::timeout, this, &LevelScene::PlayerAnimation);
+        displayGameOverWindow("Good job, oh sweet child.");
+    }
 }
 
 void LevelScene::timerStart()
 {
     timer->start();
     disconnect(this, &LevelScene::didFirstInput, this, &LevelScene::timerStart);
+}
+
+void LevelScene::finishLevel()
+{
+    if (isWin)
+    {
+        emit levelComplete();
+    }
+    else
+    {
+        emit levelFail();
+    }
 }
 
 void LevelScene::keyPressEvent(QKeyEvent *event)
@@ -127,25 +155,88 @@ void LevelScene::keyPressEvent(QKeyEvent *event)
         emit didFirstInput();
     }
 
-    switch (event->key()) {
-    case Qt::Key_Right:
-    case Qt::Key_D:
-        if (player->getDirection() == -1)
-            player->rotate();
-        player->walk(true);
-        break;
-    case Qt::Key_Left:
-    case Qt::Key_A:
-        if (player->getDirection() == 1)
-            player->rotate();
-        player->walk(false);
-        break;
-    case Qt::Key_Space:
-    case Qt::Key_Up:
-    case Qt::Key_W:
-        // TODO: jump
-        break;
+    if(player->isEnabled())
+    {
+        switch (event->key()) {
+        case Qt::Key_Right:
+        case Qt::Key_D:
+            if (player->getDirection() == -1)
+                player->rotate();
+            player->walk(true);
+            break;
+        case Qt::Key_Left:
+        case Qt::Key_A:
+            if (player->getDirection() == 1)
+                player->rotate();
+            player->walk(false);
+            break;
+        case Qt::Key_Space:
+        case Qt::Key_Up:
+            //jump()
+            break;
+        }
     }
+    else
+        event->ignore();
+}
+
+void LevelScene::drawPanel(int x, int y, int width, int height, QColor color, double opacity, int flag)
+{
+    // Рисует панель на x, y с параметрами-свойствами
+    if (flag == 0)
+    {
+        QGraphicsRectItem* panel = new QGraphicsRectItem(x,y,width,height);
+        QBrush brush;
+        brush.setStyle(Qt::SolidPattern);
+        brush.setColor(color);
+        panel->setBrush(brush);
+        panel->setOpacity(opacity);
+        this->addItem(panel);
+    }
+    else
+    {
+        QLabel* label = new QLabel();
+        label->resize(width,height);
+        label->move(x,y);
+        QPixmap background(":/rsc/images/death_message.png");
+        background = background.scaled(label->size(), Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+        label->setPixmap(background);
+        label->raise();
+        this->addWidget(label);
+    }
+}
+
+void LevelScene::displayGameOverWindow(QString textToDisplay)
+{
+    // Отключаем все объекты уровня
+    disconnect(timerAnimation, &Timer::timeout, this, &LevelScene::PlayerAnimation);
+    for (size_t i = 0, n = this->items().size(); i < n; i++){
+        this->items()[i]->setEnabled(false);
+    }
+    this->removeItem(player);
+    this->removeItem(goal);
+
+    // Затемняем игру
+    drawPanel(0,0,960,540,Qt::black,0.65,0);
+
+    // Рисуем панельку
+    drawPanel(180,133,600,273,Qt::lightGray,0.75,1);
+
+    // Рисуем окно с текстом
+    int id = QFontDatabase::addApplicationFont(":/rsc/resources/ITCBLKAD.TTF");
+    QString font_name = QFontDatabase::applicationFontFamilies(id).at(0);
+    QFont font = QFont(font_name, 43, QFont::Normal);
+
+    QGraphicsTextItem* overText = new QGraphicsTextItem(textToDisplay);
+    overText->setPos(300,175);
+    overText->setFont(font);
+
+    this->addItem(overText);
+
+    Button* MainMenu = new Button(QString("ok"), font);
+    MainMenu->setPos(422,410);
+    this->addItem(MainMenu);
+    connect(MainMenu, &Button::clicked, this, &LevelScene::finishLevel);
 }
 
 void LevelScene::timeUpdate()
@@ -154,7 +245,8 @@ void LevelScene::timeUpdate()
         timerLabel->setStyleSheet("QLabel { color : red; }");
         timerLabel->setText("0:00");
         timer->stop();
-        emit levelFail();
+        displayGameOverWindow("I am disappointed");
+        //emit levelFail();
         return;
     }
 
@@ -170,7 +262,8 @@ void LevelScene::timeUpdate()
         timerLabel->setStyleSheet("QLabel { color : red; }");
         timerLabel->setText("0:00");
         timer->stop();
-        emit levelFail();
+        displayGameOverWindow("I am disappointed");
+        //emit levelFail();
         return;
     }
 }

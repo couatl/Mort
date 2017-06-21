@@ -24,7 +24,6 @@ public:
         builder->createNewBlock(x, y);
         builder->buildPixmap();
     }
-
 };
 
 #endif // BLOCKWAITER_H

@@ -155,6 +155,12 @@ void ClockFacade::fail(int index)
     clock_timers[index]->setTime(0);
 }
 
+void ClockFacade::succeed(int index)
+{
+    clocks[index]->MakeSucceed();
+    clock_timers[index]->stop();
+}
+
 void ClockFacade::stop(int index)
 {
     clock_timers[index]->stop();

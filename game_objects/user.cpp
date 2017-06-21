@@ -99,6 +99,4 @@ void User::setScore(unsigned score){
         xmlWriter.writeEndDocument();
         file.close();
     }
-
-
 }

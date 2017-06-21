@@ -33,7 +33,7 @@ GameWindow::GameWindow(QWidget *parent) :
     id_selected(-1),
     clockFacade(new ClockFacade()),
     times(QVector<QLabel*>(3)),
-    timer_message(new Timer(nullptr, 60, 300)),
+    timer_message(new Timer(nullptr, 60, 100)),
     loading(new QLabel(this))
 {
     ui->setupUi(this);
@@ -121,12 +121,13 @@ void GameWindow::launchGame_1()
     startLoading();
 
     connect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
-    //connect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
+    connect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
 }
 
 void GameWindow::completedGame_1()
 {
-
+    clockFacade->succeed(0);
+    startLoading();
 }
 
 void GameWindow::failedGame_1()
@@ -156,7 +157,6 @@ void GameWindow::mousePressEvent(QMouseEvent *event)
         emit clicked_3();
         break;
     }
-
 }
 
 void GameWindow::drawClocks()

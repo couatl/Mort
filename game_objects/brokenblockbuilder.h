@@ -3,9 +3,8 @@
 
 #include "abstractblockbuilder.h"
 
-#include <QDebug>
-
-#define distance 138
+#define DISTANCE 138
+#define WIDTH 60
 
 class BrokenBlockBuilder: public AbstractBlockBuilder
 {
@@ -18,24 +17,20 @@ public:
     ~BrokenBlockBuilder() {}
 
     QList<AbstractBlock*> getBlock() {
-        qDebug() << "Broken get block";
         QList<AbstractBlock*> list;
         list.insert(0, block.release());
         list.insert(1, secondBlock.release());
-        //list.push_back(block.release());
-        //list.push_back(secondBlock.release());
         return list;
     }
 
     void createNewBlock(int x, int y) {
-        qDebug() << "Broken create block";
         block.reset(new AbstractBlock(x, y));
-        secondBlock.reset(new AbstractBlock(x + distance + 60, y));
+        secondBlock.reset(new AbstractBlock(x + DISTANCE + WIDTH, y));
     }
 
     void buildPixmap() {
-        block->setImage(":/rsc/images/broken_left.png", 60);
-        secondBlock->setImage(":/rsc/images/broken_right.png", 60);
+        block->setImage(":/rsc/images/broken_left.png", WIDTH);
+        secondBlock->setImage(":/rsc/images/broken_right.png", WIDTH);
     }
 };
 

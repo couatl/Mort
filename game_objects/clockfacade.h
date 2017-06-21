@@ -24,7 +24,9 @@ public:
     void show();
     void draw();
     int press(int &id_selected);
+
     void fail(int index);
+    void succeed(int index);
     void stop(int index);
     int time(int index);
 

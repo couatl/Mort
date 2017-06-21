@@ -18,5 +18,6 @@
         <file>images/loading.png</file>
         <file>images/broken_right.png</file>
         <file>images/broken_left.png</file>
+        <file>images/death_message.png</file>
     </qresource>
 </RCC>
