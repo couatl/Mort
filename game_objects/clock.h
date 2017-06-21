@@ -18,7 +18,7 @@ class Clock: public QLabel{
 private:
     class State* _state;
 public:
-    inline Clock(QWidget* parent, class State * state = nullptr);
+    inline Clock(QWidget* , class State *);
     inline void MakeNormal( );
 
     inline void MakeHover( );
@@ -71,7 +71,7 @@ public:
     inline int getState(){
         return _normal;
     }
-    void drawClock( Clock* clck ){
+    inline void drawClock( Clock* clck ){
         QPixmap clock;
         clock.load(":/rsc/images/clock.png");
         clock = clock.scaled(clck->size(), Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
@@ -139,28 +139,27 @@ public:
     }
 };
 
-
-inline void NormalState::makeHover( Clock* clock){
+void NormalState::makeHover( Clock* clock){
     clock->setState(new HoverState());
 }
-inline void NormalState::makeSucceed( Clock* clock){
+void NormalState::makeSucceed( Clock* clock){
     clock->setState(new SucceedState());
 }
-inline void NormalState::makeFailed( Clock* clock){
+void NormalState::makeFailed( Clock* clock){
     clock->setState(new FailedState());
 }
 
-inline void HoverState::makeNormal( Clock* clock){
+void HoverState::makeNormal( Clock* clock){
     clock->setState(new NormalState());
 }
 void HoverState::makeSucceed( Clock* clock){
     clock->setState(new SucceedState());
 }
-inline void HoverState::makeFailed( Clock* clock){
+void HoverState::makeFailed( Clock* clock){
     clock->setState(new FailedState());
 }
 
-inline Clock::Clock(QWidget* parent, State *state):
+Clock::Clock(QWidget* parent, State *state = new NormalState()):
         QLabel(parent), _state(state){
     this->setVisible(false);
     this->setFixedSize(145, 237);
@@ -168,36 +167,35 @@ inline Clock::Clock(QWidget* parent, State *state):
     _state->drawClock(this);
 }
 
-inline void Clock::MakeNormal( ){
+void Clock::MakeNormal( ){
     _state->makeNormal( this );
     _state->drawClock( this );
 }
 
-inline void Clock::MakeHover( ){
+void Clock::MakeHover( ){
     _state->makeHover( this );
     _state->drawClock( this );
 }
 
-inline void Clock::MakeSucceed( ){
+void Clock::MakeSucceed( ){
     _state->makeSucceed( this );
     _state->drawClock( this );
 }
 
-inline void Clock::MakeFailed( ){
+void Clock::MakeFailed( ){
     _state->makeFailed( this );
     _state->drawClock( this );
 }
 
-inline bool Clock::IsFocused(){
+bool Clock::IsFocused(){
     return _state->isFocused();
 }
 
-inline bool Clock::IsNormal(){
+bool Clock::IsNormal(){
     return _state->isNormal();
 }
 
-inline int Clock::GetState(){
+int Clock::GetState(){
     return _state->getState();
 }
-
 #endif // CLOCK_H
