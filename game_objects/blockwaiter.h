@@ -15,9 +15,11 @@ public:
     void setBlockBuilder(AbstractBlockBuilder* b) {
         builder = b;
     }
-    AbstractBlock* getBlock() const {
+
+    QList<AbstractBlock*> getBlock() const {
         return builder->getBlock();
     }
+
     void constructBlock(int x, int y){
         builder->createNewBlock(x, y);
         builder->buildPixmap();

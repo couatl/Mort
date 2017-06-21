@@ -9,7 +9,7 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     QGraphicsScene(parent),
     timer(_timer),
     user(_user),
-    startBlocks(QVector<AbstractBlock*>(10)),
+    startBlocks(QVector<AbstractBlock*>(13)),
     view(_view),
     timerLabel(_timerLabel),
     yAnimation(0),
@@ -17,7 +17,8 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     timerAnimation(new Timer(this, 60, 20)),
     firstInput(false)
 {
-    this->setSceneRect(0, 0, 960, 540);
+    // ширина равна 86 (ширина 1 блока) * 24
+    this->setSceneRect(0, 0, 2064, 520);
     QPixmap _background(":/rsc/images/bg.png");
     _background = _background.scaled(543, 540, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
     this->setBackgroundBrush(QBrush(_background));
@@ -29,11 +30,26 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     BlockWaiter waiter;
     BlockBuilder builder;
     waiter.setBlockBuilder(&builder);
-    for (int i = 0; i < 10; i++)  {
+    for (int i = 0; i < 8; i++)  {
         waiter.constructBlock(i*86, 453);
-        startBlocks[i] = waiter.getBlock();
+        startBlocks[i] = waiter.getBlock().first();
         addItem(startBlocks[i]);
     }
+
+    BrokenBlockBuilder builder_2;
+    waiter.setBlockBuilder(&builder_2);
+    waiter.constructBlock(8*86, 453);
+    QList<AbstractBlock*> blockList = waiter.getBlock();
+    startBlocks[8] = blockList.first();
+    startBlocks[9] = blockList.last();
+    addItem(startBlocks[8]);
+    addItem(startBlocks[9]);
+    waiter.constructBlock(11*86, 453);
+    blockList = waiter.getBlock();
+    startBlocks[10] = blockList.first();
+    startBlocks[11] = blockList.last();
+    addItem(startBlocks[10]);
+    addItem(startBlocks[11]);
 
     timerLabel->setText(timer->getDecoratedTime());
     if (timer->getTime() <= 10)

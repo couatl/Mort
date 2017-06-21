@@ -2,6 +2,7 @@
 #define ABSTRACTBLOCKBUILDER_H
 
 #include "abstractblock.h"
+#include <QList>
 #include <memory>
 
 class AbstractBlockBuilder
@@ -13,11 +14,13 @@ public:
     AbstractBlockBuilder() {}
     virtual ~AbstractBlockBuilder() {}
 
-    AbstractBlock* getBlock() {
-        return block.release();
+    virtual QList<AbstractBlock*> getBlock() {
+        QList<AbstractBlock*> list;
+        list.push_back(block.release());
+        return list;
     }
 
-    void createNewBlock(int x, int y) {
+    virtual void createNewBlock(int x, int y) {
         block.reset(new AbstractBlock(x, y));
     }
 

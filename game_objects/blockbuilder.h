@@ -9,7 +9,9 @@ public:
     BlockBuilder() :  AbstractBlockBuilder() {}
     ~BlockBuilder() {}
 
-    void buildPixmap();
+    void buildPixmap() {
+        block->setImage(":/rsc/images/tile.png", 86);
+    }
 };
 
 #endif // BLOCKBUILDER_H

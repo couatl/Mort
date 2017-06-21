@@ -15,6 +15,7 @@
 
 #include "../game_objects/blockbuilder.h"
 #include "../game_objects/blockwaiter.h"
+#include "../game_objects/brokenblockbuilder.h"
 
 #include "level.h"
 
