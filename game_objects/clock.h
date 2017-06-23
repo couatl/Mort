@@ -17,7 +17,7 @@ class Clock: public QLabel{
 private:
     class State* _state;
 public:
-    inline Clock(QWidget* , class State * = new NormalState());
+    inline Clock(QWidget* , class State *);
     inline void MakeNormal();
     inline void MakeHover();
     inline void MakeSucceed();
