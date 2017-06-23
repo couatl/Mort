@@ -250,5 +250,5 @@ inline bool Clock::IsNormal(){
 inline int Clock::GetState(){
     return _state->getState();
 }
-}
+
 #endif // CLOCK_H
