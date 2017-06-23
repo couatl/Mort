@@ -13,11 +13,9 @@
 
 #include "../game_objects/clockfacade.h"
 
-//  TODO: Гор побольше
-//  TODO: Песок на часах failed
-//  TODO: поменять succeed
-
 //  TODO: баг зависание игрока
+//  TODO: не рассматривать брокен блоки как препятствия
+//  TODO: переписать на анимациях полет
 
 namespace Ui {
 class GameWindow;

@@ -6,6 +6,11 @@
 class AbstractBlock : public QGraphicsItem
 {
 public:
+    enum BlockType {
+        Block = UserType + 30,
+        BrokenBlock = UserType + 31
+    };
+
     AbstractBlock(int _x = 0, int _y = 0, QGraphicsItem *parent = 0, int _width = 86, const QString& path = "");
     virtual ~AbstractBlock() {}
 
@@ -14,6 +19,11 @@ public:
 
     void setImage(const QString& path, int _width);
     void setXY(int _x, int _y);
+    void setType(BlockType _type);
+
+    int type() const {
+        return m_type;
+    }
 
 protected:
     QPixmap blockImage;
@@ -22,6 +32,8 @@ protected:
 
     int x;
     int y;
+
+    BlockType m_type;
 };
 
 #endif // ABSTRACTBLOCK_H

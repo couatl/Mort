@@ -25,6 +25,7 @@ public:
     }
 
     virtual void buildPixmap() = 0;
+    virtual void buildType() = 0;
 };
 
 #endif // ABSTRACTBLOCKBUILDER_H

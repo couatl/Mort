@@ -7,14 +7,15 @@ Player::Player(int _x, int _y, QGraphicsObject *parent) : QGraphicsObject(parent
     x(_x),
     y(_y),
     direction(1),
-    yAnimation(0)
+    yAnimation(0),
+    jumpFact(0)
 {
    // QImage image = QImage(":/rsc/images/Death_Character.png");
     playerImageRotate = QPixmap::fromImage(QImage(":/rsc/images/Death_Character.png").mirrored(true, false));
-    playerImageRotate = playerImageRotate.scaled(128, 132, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+    playerImageRotate = playerImageRotate.scaled(90, 93, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
 
     playerImage = QPixmap(":/rsc/images/Death_Character.png");
-    playerImage = playerImage.scaled(128, 132, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+    playerImage = playerImage.scaled(90, 93, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
 
     this->setPos(x,y);
 
@@ -25,7 +26,7 @@ Player::Player(int _x, int _y, QGraphicsObject *parent) : QGraphicsObject(parent
     jumpAnimation->setKeyValueAt(0.5, 1);
     jumpAnimation->setEndValue(0);
     jumpAnimation->setDuration(900);
-    jumpAnimation->setEasingCurve(QEasingCurve::OutInQuad);
+    jumpAnimation->setEasingCurve(QEasingCurve::OutInSine);
 }
 
 void Player::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
@@ -38,7 +39,7 @@ void Player::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
 }
 
 QRectF Player::boundingRect() const {
-    return QRectF(pos().x(), pos().y(), 128, 132+2*(14-yAnimation));
+    return QRectF(pos().x(), pos().y(), 90, 93+2*(14-yAnimation));
 }
 
 void Player::setYAnimation(int _yAnimation)
@@ -82,7 +83,7 @@ void Player::walk(bool right)
 
 void Player::jump() {
     if (QAbstractAnimation::Stopped == jumpAnimation->state()) {
-        state = jumping;
+        //state = jumping;
         jumpAnimation->start();
         emit signalJump();
     }

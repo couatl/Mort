@@ -102,7 +102,6 @@ GameWindow::~GameWindow()
 
     delete loading;
     delete timer_message;
-    delete scene;
 
     delete ui;
 }
@@ -128,6 +127,9 @@ void GameWindow::launchGame_1()
 
 void GameWindow::completedGame_1()
 {
+    disconnect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
+    disconnect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
+
     clockFacade->succeed(0);
     ui->time_1->setText(clockFacade->clock_timers[0]->getDecoratedTime());
     ui->time_1->setStyleSheet("QLabel { color : green; }");
@@ -138,6 +140,9 @@ void GameWindow::completedGame_1()
 
 void GameWindow::failedGame_1()
 {
+    disconnect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
+    disconnect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
+
     clockFacade->fail(0);
     ui->time_1->setText("0:00");
     ui->time_1->setStyleSheet("QLabel { color : red; }");
@@ -177,8 +182,12 @@ void GameWindow::drawClocks()
         times[i]->setFont(font);
         times[i]->setPalette(palette);
 
-        if (clockFacade->time(i) <= 10)
+        if (clockFacade->getState(i) == _succeed) {
+            times[i]->setStyleSheet("QLabel { color : green; }");
+        }
+        else if (clockFacade->time(i) <= 10) {
             times[i]->setStyleSheet("QLabel { color : red; }");
+        }
         times[i]->setText(clockFacade->clock_timers[i]->getDecoratedTime());
     }
 
@@ -279,6 +288,7 @@ void GameWindow::endLoading()
          case 0:
              qDebug() << "case 0";
              clockRead();
+             clockWrite();
              ui->stackedWidget->setCurrentIndex(1);
              drawBackground();
              drawShelf();
@@ -293,9 +303,9 @@ void GameWindow::endLoading()
              break;
          case 2:
              qDebug() << "case 2";
-             //clearScene();
              showAll();
              ui->stackedWidget->setCurrentIndex(1);
+             delete scene;
              break;
          }
 
@@ -367,6 +377,7 @@ void GameWindow::on_pushButton_clicked()
     else if (ui->userLineEdit->text().length()>9)
     {
         ui->errorLabel->setText("Username must be less than 10 characters");
+        ui->errorLabel->setStyleSheet("QLabel { color : red; }");
     }
     // TODO : регулярное выражение для всех форматов вида
     else if (ui->userLineEdit->text() == "death" || ui->userLineEdit->text() == "Death")

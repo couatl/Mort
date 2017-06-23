@@ -24,7 +24,6 @@ public:
     void walk(bool right);
     void jump();
 
-    void fall();
     int getX() const { return x; }
     int getY() const { return y; }
     int getYAnimation() const { return yAnimation; }
@@ -49,6 +48,7 @@ signals:
     void signalJump();
 
 public slots:
+    void fall();
 
 private:
     QPixmap playerImage;
