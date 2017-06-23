@@ -1,13 +1,19 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <QGraphicsItem>
+#include <QGraphicsObject>
+#include <QPropertyAnimation>
 #include "timer.h"
 
-class Player : public QGraphicsItem
+class Player : public QGraphicsObject
 {
+    Q_OBJECT
+    Q_PROPERTY(qreal jumpFactor READ jumpFactor WRITE setJumpFactor
+                                   NOTIFY jumpFactorChanged)
+
 public:
-    explicit Player(int _x, int _y, QGraphicsItem *parent = 0);
+    explicit Player(int _x, int _y, QGraphicsObject *parent = 0);
+    virtual ~Player() {}
 
     enum State {
         normal,
@@ -16,7 +22,7 @@ public:
     };
 
     void walk(bool right);
-//    void jump();
+    void jump();
 
     void fall();
     int getX() const { return x; }
@@ -34,6 +40,16 @@ public:
     
     void animation();
 
+    void setJumpFactor(const qreal& pos);
+    qreal jumpFactor() const;
+
+    QPropertyAnimation* jumpAnimation;
+signals:
+    void jumpFactorChanged(qreal);
+    void signalJump();
+
+public slots:
+
 private:
     QPixmap playerImage;
     QPixmap playerImageRotate;
@@ -42,8 +58,11 @@ private:
 
     int x;
     int y;
+
     int direction;
     int yAnimation;
+
+    qreal jumpFact;
 };
 
 #endif // PLAYER_H

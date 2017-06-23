@@ -1,8 +1,9 @@
 #include "player.h"
 
+#include <QDebug>
 #include <QPainter>
 
-Player::Player(int _x, int _y, QGraphicsItem *parent) : QGraphicsItem(parent),
+Player::Player(int _x, int _y, QGraphicsObject *parent) : QGraphicsObject(parent),
     x(_x),
     y(_y),
     direction(1),
@@ -16,6 +17,15 @@ Player::Player(int _x, int _y, QGraphicsItem *parent) : QGraphicsItem(parent),
     playerImage = playerImage.scaled(128, 132, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
 
     this->setPos(x,y);
+
+    jumpAnimation = new QPropertyAnimation(this);
+    jumpAnimation->setTargetObject(this);
+    jumpAnimation->setPropertyName("jumpFactor");
+    jumpAnimation->setStartValue(0);
+    jumpAnimation->setKeyValueAt(0.5, 1);
+    jumpAnimation->setEndValue(0);
+    jumpAnimation->setDuration(900);
+    jumpAnimation->setEasingCurve(QEasingCurve::OutInQuad);
 }
 
 void Player::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
@@ -40,19 +50,42 @@ void Player::setState(State _state){
     state = _state;
 }
 
+void Player::setJumpFactor(const qreal& pos)
+{
+    if (pos == jumpFact)
+           return;
+    jumpFact = pos;
+    emit jumpFactorChanged(jumpFact);
+}
+
+qreal Player::jumpFactor() const
+{
+    return jumpFact;
+}
+
 void Player::walk(bool right)
 {
+    const int leftBorder = 390;
+    const int rightBorder = 570 - boundingRect().width();
     int step = 25;
     if (right)
     {
-        x=pos().x()+step;
+        x = pos().x() + step;
     }
     else
     {
-        x=pos().x()-step;
+        x = pos().x() - step;
     }
     if (x < 0)
         x = 0;
+}
+
+void Player::jump() {
+    if (QAbstractAnimation::Stopped == jumpAnimation->state()) {
+        state = jumping;
+        jumpAnimation->start();
+        emit signalJump();
+    }
 }
 
 void Player::fall()

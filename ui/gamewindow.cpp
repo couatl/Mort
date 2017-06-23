@@ -40,6 +40,8 @@ GameWindow::GameWindow(QWidget *parent) :
     this->setWindowTitle("Mort");
 
     ui->stackedWidget->setCurrentIndex(0);
+    ui->userLineEdit->setVisible(false);
+    ui->pushButton->setVisible(false);
 
     int id = QFontDatabase::addApplicationFont(":/rsc/resources/ITCBLKAD.TTF");
     QString font_name = QFontDatabase::applicationFontFamilies(id).at(0);
@@ -161,6 +163,7 @@ void GameWindow::mousePressEvent(QMouseEvent *event)
         emit clicked_3();
         break;
     }
+    QMainWindow::mousePressEvent(event);
 }
 
 void GameWindow::drawClocks()
@@ -234,11 +237,18 @@ void GameWindow::clockRead()
 }
 
 void GameWindow::writeMessage()  {
-    QString message = "Hello, bla bla bla \n\n\n\n\n Enter your name";
+    QString message = "My sweet child! \n"
+            "It's time for me to leave you alone. I was teaching you\n"
+            "all your life and since now you finally have your chance\n"
+            "to declare yourself as a true master. \n"
+            "I proudly proclaim new Death: \n"
+            "May the great Universe blessed you with luck.";
 
         if (ui->message->text().length() == message.length())
         {
             timer_message->stop();
+            ui->userLineEdit->setVisible(true);
+            ui->pushButton->setVisible(true);
         }
         else
         {
@@ -354,6 +364,10 @@ void GameWindow::on_pushButton_clicked()
         {
             ui->errorLabel->setText("You MUST have name!");
         }
+    else if (ui->userLineEdit->text().length()>9)
+    {
+        ui->errorLabel->setText("Username must be less than 10 characters");
+    }
     // TODO : регулярное выражение для всех форматов вида
     else if (ui->userLineEdit->text() == "death" || ui->userLineEdit->text() == "Death")
         {

@@ -33,7 +33,7 @@ public:
     QVector<Timer*> clock_timers;
 
 private:
-        QVector<Clock*> clocks;
+    QVector<Clock*> clocks;
 };
 
 #endif // CLOCKFACADE_H

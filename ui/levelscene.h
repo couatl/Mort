@@ -35,6 +35,7 @@ public slots:
     void PlayerAnimation();
     void timerStart();
     void finishLevel();
+    void playerJump(qreal factor);
 
 protected:
     void keyPressEvent(QKeyEvent *event);
@@ -69,6 +70,8 @@ private:
     int yAnimation;
     bool upAnimation;
     Timer* timerAnimation;
+
+    int countMoved;
 };
 
 #endif // LEVELSCENE_H

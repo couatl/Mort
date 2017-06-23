@@ -7,6 +7,7 @@ class AbstractBlock : public QGraphicsItem
 {
 public:
     AbstractBlock(int _x = 0, int _y = 0, QGraphicsItem *parent = 0, int _width = 86, const QString& path = "");
+    virtual ~AbstractBlock() {}
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QRectF boundingRect() const;

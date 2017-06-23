@@ -7,6 +7,7 @@ class Goal : public QGraphicsItem
 {
 public:
     explicit Goal(int _x, int _y, QGraphicsItem *parent = 0);
+    virtual ~Goal() { }
 
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);

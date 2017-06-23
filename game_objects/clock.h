@@ -19,6 +19,11 @@ private:
     class State* _state;
 public:
     inline Clock(QWidget* , class State *);
+
+    virtual ~Clock() {
+        delete _state;
+    }
+
     inline void MakeNormal( );
 
     inline void MakeHover( );
@@ -41,7 +46,7 @@ public:
 
 class State {
 public:
-    inline virtual void makeNormal( Clock*){}
+    inline virtual void makeNormal( Clock*) {}
     inline virtual void makeHover( Clock*){}
     inline virtual void makeSucceed( Clock*){}
     inline virtual void makeFailed( Clock*){}

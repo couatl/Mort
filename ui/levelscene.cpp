@@ -9,6 +9,9 @@
 
 #include <QDebug>
 
+#define PLAYER_START_X 10
+#define PLAYER_START_Y 150
+
 LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer, User *_user, QWidget *parent):
     QGraphicsScene(parent),
     timer(_timer),
@@ -21,7 +24,8 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     timerLabel(_timerLabel),
     yAnimation(0),
     upAnimation(true),
-    timerAnimation(new Timer(this, 60, 20))
+    timerAnimation(new Timer(this, 100, 25)),
+    countMoved(10)
 {
     // ширина равна 86 (ширина 1 блока) * 24
     this->setSceneRect(0, 0, 2064, 520);
@@ -29,7 +33,7 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     _background = _background.scaled(543, 540, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
     this->setBackgroundBrush(QBrush(_background));
       
-    player = new Player(0, 150);
+    player = new Player(PLAYER_START_X, PLAYER_START_Y);
     this->addItem(player);
 
     goal = new Goal(800, 155);
@@ -69,6 +73,10 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     connect(timer, &Timer::timeout, this, &LevelScene::timeUpdate);
     connect(timerAnimation, &Timer::timeout, this, &LevelScene::PlayerAnimation);
     connect(this, &LevelScene::didFirstInput, this, &LevelScene::timerStart);
+
+    connect(player, &Player::jumpFactorChanged, this, &LevelScene::playerJump);
+    connect(player, &Player::signalJump, timerAnimation, &Timer::stop);
+    connect(player->jumpAnimation, SIGNAL(finished()), timerAnimation, SLOT(start()));
 }
 
 LevelScene::~LevelScene() {
@@ -82,7 +90,7 @@ LevelScene::~LevelScene() {
 
 void LevelScene::PlayerAnimation()
 {
-    if (player->pos().y()>=(540-132)/2)
+    if (player->pos().y() >= (540 - 132) / 2)
     {
         disconnect(timer, &Timer::timeout, this, &LevelScene::timeUpdate);
         disconnect(timerAnimation, &Timer::timeout, this, &LevelScene::PlayerAnimation);
@@ -90,12 +98,13 @@ void LevelScene::PlayerAnimation()
     }
 
     //  falling
-    int isFall = player->getState()==Player::falling ? 2 : 0;
+    int playerState = player->getState();
+    int isFall = player->getState() == Player::falling ? 2 : 0;
 
     //  flying animation
-    if (isFall==0)
+    if (playerState == Player::normal)
     {
-        if (yAnimation==14 || yAnimation==-14)
+        if (yAnimation == 14 || yAnimation == -14)
         {
             upAnimation = !upAnimation;
         }
@@ -110,14 +119,32 @@ void LevelScene::PlayerAnimation()
         player->setYAnimation(yAnimation);
     }
 
+//    if (playerState == Player::jumping)
+//    {
+//        if (yAnimation == -40)
+//        {
+//            player->setState(Player::falling);
+//        }
+//        else {
+//            yAnimation--;
+//        }
+//        player->setYAnimation(yAnimation);
+//    }
+
     //  apply changes
-    player->setPos(player->getX()==player->pos().x() ? player->pos().x() : player->pos().x()+player->getDirection(), (player->getY()+yAnimation+isFall));
+    player->setPos(
+                player->getX() == player->pos().x() ?
+                    player->pos().x() :
+                    player->pos().x() + player->getDirection(),
+                (player->getY() + yAnimation + isFall));
+
+    countMoved = player->pos().x();
 
     if (player->collidingItems().isEmpty())
     {
         player->setState(Player::falling);
     }
-    else if (player->getState() == Player::falling)
+    else if (player->getState() != Player::normal)
     {
         if (intersect(player, player->collidingItems()))
            player->setState(Player::normal);
@@ -148,6 +175,16 @@ void LevelScene::finishLevel()
     }
 }
 
+void LevelScene::playerJump(qreal factor)
+{
+    int groundLevel = startBlocks.first()->boundingRect().top();
+    int jumpHeight = 130;
+    const qreal y = (groundLevel - player->boundingRect().height() - factor * jumpHeight) / 2;
+    player->setPos(player->getX() == player->pos().x() ?
+                       player->pos().x() :
+                       player->pos().x() + ( player->getDirection() == -1 ? -2 : 2), y);
+}
+
 void LevelScene::keyPressEvent(QKeyEvent *event)
 {
     if (!firstInput)  {
@@ -172,7 +209,9 @@ void LevelScene::keyPressEvent(QKeyEvent *event)
             break;
         case Qt::Key_Space:
         case Qt::Key_Up:
-            //jump()
+            if (event->isAutoRepeat())
+                return;
+            player->jump();
             break;
         }
     }
