@@ -17,8 +17,7 @@ class Clock: public QLabel{
 private:
     class State* _state;
 public:
-    inline Clock(QWidget*);
-    inline Clock(QWidget* , class State *);
+    inline Clock(QWidget* , class State * = new NormalState());
     inline void MakeNormal();
     inline void MakeHover();
     inline void MakeSucceed();
@@ -199,16 +198,7 @@ inline void FailedState::drawClock( Clock* clck ){
 }
 
 //Clock
-inline Clock::Clock(QWidget* parent):
-QLabel(parent){
-    _state = new NormalState();
-    this->setVisible(false);
-    this->setFixedSize(145, 237);
-    this->setMouseTracking(true);
-    _state->drawClock(this);
-}
-
-inline Clock::Clock(QWidget* parent, State *state):
+inline Clock::Clock(QWidget* parent, State *state = new NormalState()):
 QLabel(parent), _state(state){
     this->setVisible(false);
     this->setFixedSize(145, 237);
