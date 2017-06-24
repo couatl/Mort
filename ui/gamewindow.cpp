@@ -60,6 +60,7 @@ GameWindow::GameWindow(QWidget *parent) :
     connect(this, &GameWindow::clicked_1, this, &GameWindow::launchGame_1);
 
     drawBackground();
+    drawLoading();
 
     // for firstPage
     ui->userLineEdit->setFont(font);
@@ -117,12 +118,8 @@ void GameWindow::launchGame_1()
     qDebug() << "launch game 1";
 
     clockFacade->stop(0);
-    scene = new LevelScene(ui->view, ui->timerLabel, clockFacade->clock_timers[0], &user);
 
     startLoading();
-
-    connect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
-    connect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
 }
 
 void GameWindow::completedGame_1()
@@ -212,7 +209,6 @@ void GameWindow::drawLoading()
     _loading = _loading.scaled(960, 540,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
     loading->setPixmap(_loading);
     loading->raise();
-    loading->setDisabled(true);
     loading->hide();
 }
 
@@ -268,55 +264,48 @@ void GameWindow::writeMessage()  {
 void GameWindow::endLoading()
 {
     // "затухание"
-    QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(this);
+    QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect();
     loading->setGraphicsEffect(eff);
     animationEnd = new QPropertyAnimation(eff, "opacity");
     animationEnd->setDuration(1700);
     animationEnd->setStartValue(1);
     animationEnd->setEndValue(0);
     animationEnd->setEasingCurve(QEasingCurve::OutBack);
-    workerThread = new QThread(this);
+    workerThread = new QThread();
     animationEnd->moveToThread(workerThread);
 
-    connect(workerThread, &QThread::started, this, &GameWindow::processLoading);
-    connect(animationEnd, &QPropertyAnimation::finished, workerThread, &QThread::quit);
-    connect(workerThread, &QThread::finished, animationEnd, &QPropertyAnimation::deleteLater);
-    connect(animationEnd, &QPropertyAnimation::destroyed, workerThread, &QThread::deleteLater);
-    workerThread->start();
-
-    switch(ui->stackedWidget->currentIndex()){
+    switch(ui->stackedWidget->currentIndex())  {
          case 0:
-             qDebug() << "case 0";
              clockRead();
              clockWrite();
-             ui->stackedWidget->setCurrentIndex(1);
              drawBackground();
              drawShelf();
              drawClocks();
+             ui->stackedWidget->setCurrentIndex(1);
              break;
          case 1:
-             qDebug() << "case 1";
-             clearAll();
+             clockFacade->hide();
+             scene = new LevelScene(ui->view, ui->timerLabel, ui->keyLabel, clockFacade->clock_timers[0], &user);
+             connect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
+             connect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
              ui->stackedWidget->setCurrentIndex(2);
              ui->view->setScene(scene);
              ui->view->setFocus();
+             scene->getTimerAnimation()->start();
              break;
          case 2:
-             qDebug() << "case 2";
-             showAll();
+             clockFacade->show();
              ui->stackedWidget->setCurrentIndex(1);
              delete scene;
              break;
          }
-
-    qDebug() << workerThread->isRunning() << " " << workerThread->isFinished();
-    qDebug() << animationEnd->state();
+    connect(workerThread, &QThread::started, this, &GameWindow::processLoading);
+    workerThread->start();
 }
 
 void GameWindow::startLoading()
 {
     drawLoading();
-
     // "появление"
     loading->show();
     QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(this);
@@ -327,7 +316,6 @@ void GameWindow::startLoading()
     animationStart->setEndValue(1);
     animationStart->setEasingCurve(QEasingCurve::InBack);
     animationStart->start(QPropertyAnimation::DeleteWhenStopped);
-    qDebug() << "start loading";
     connect(animationStart, &QPropertyAnimation::finished, this, &GameWindow::endLoading);
 }
 
@@ -365,7 +353,9 @@ void GameWindow::processLoading()
    while (animationEnd->state() != QPropertyAnimation::Stopped) {
      QCoreApplication::processEvents();
    }
-   loading->hide();
+   workerThread->quit();
+   workerThread->deleteLater();
+   animationEnd->deleteLater();
 }
 
 void GameWindow::on_pushButton_clicked()

@@ -6,10 +6,11 @@
 #include <QFontDatabase>
 #include <QFont>
 #include <QPushButton>
+#include <QCoreApplication>
 
 #include <QDebug>
 
-LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer, User *_user, QWidget *parent):
+LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, QLabel* _keyLabel, Timer *_timer, User *_user, QWidget *parent):
     QGraphicsScene(parent),
     timer(_timer),
     user(_user),
@@ -18,9 +19,10 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     firstInput(false),
     view(_view),
     timerLabel(_timerLabel),
+    keyLabel(_keyLabel),
     yAnimation(0),
     upAnimation(true),
-    timerAnimation(new Timer(nullptr, 100, 25)),
+    timerAnimation(new Timer(nullptr, 100, 25, false)),
     countMoved(10)
 {
     // ширина равна 86 (ширина 1 блока) * 24
@@ -33,18 +35,23 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     level = new Level(this);
     level->loadLevel(1);
 
+    goal = level->getGoal();
+    house = new House(goal->boundingRect().x(), goal->boundingRect().bottom() - 240);
+    this->addItem(house);
+    this->addItem(goal);
+
     player = level->getPlayer();
     this->addItem(player);
-
-    goal = level->getGoal();
-    this->addItem(goal);
 
     // Загрузка таймера отсчета
     timerLabel->setText(timer->getDecoratedTime());
     if (timer->getTime() <= 10)
         timerLabel->setStyleSheet("QLabel { color : red; }");
 
-    timerAnimation->moveToThread(QThread::currentThread());
+    QPixmap _key(":/rsc/images/key.png");
+    _key = _key.scaled(61, 46, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+    keyLabel->setPixmap(_key);
+    keyLabel->hide();
 
     // коннектим сигналы-слоты
     connect(timer, &Timer::timeout, this, &LevelScene::timeUpdate);
@@ -54,18 +61,16 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     connect(player, &Player::jumpFactorChanged, this, &LevelScene::playerJump);
     connect(player, &Player::signalJump, timerAnimation, &Timer::stop);
     connect(player->jumpAnimation, SIGNAL(finished()), timerAnimation, SLOT(start()));
-    qDebug() << "BrockenBlockType: " << AbstractBlock::BrokenBlock ;
 }
 
 LevelScene::~LevelScene() {
     delete level;
     delete timerAnimation;
-
-    qDebug() << this->items();
 }
 
 void LevelScene::PlayerAnimation()
 {
+    QCoreApplication::processEvents();
     // Провалился за экран
     if (player->pos().y() >= (540 - 132) / 2)
     {
@@ -74,7 +79,7 @@ void LevelScene::PlayerAnimation()
 
     //  falling
     int playerState = player->getState();
-    int isFall = player->getState() == Player::falling ? 2 : 0;
+    int isFall = player->getState() == Player::falling ? 3 : 0;
 
     //
     if (player->pos().x() > 50)
@@ -83,7 +88,7 @@ void LevelScene::PlayerAnimation()
     //  flying animation
     if (playerState == Player::normal)
     {
-        if (yAnimation == 14 || yAnimation == -14)
+        if (yAnimation == 7 || yAnimation == -7)
         {
             upAnimation = !upAnimation;
         }
@@ -98,26 +103,12 @@ void LevelScene::PlayerAnimation()
         player->setYAnimation(yAnimation);
     }
 
-//    if (playerState == Player::jumping)
-//    {
-//        if (yAnimation == -40)
-//        {
-//            player->setState(Player::falling);
-//        }
-//        else {
-//            yAnimation--;
-//        }
-//        player->setYAnimation(yAnimation);
-//    }
-
     //  apply changes
     player->setPos(
                 player->getX() == player->pos().x() ?
                     player->pos().x() :
                     player->pos().x() + player->getDirection(),
                 (player->getY() + yAnimation + isFall));
-
-    countMoved = player->pos().x();
 
     if (player->collidingItems().isEmpty())
     {
@@ -136,7 +127,7 @@ void LevelScene::PlayerAnimation()
 
 void LevelScene::timerStart()
 {
-    timer->start();
+    timer->start(1000);
     disconnect(this, &LevelScene::didFirstInput, this, &LevelScene::timerStart);
 }
 
@@ -154,15 +145,16 @@ void LevelScene::finishLevel()
 
 void LevelScene::playerJump(qreal factor)
 {
-    qreal jumpHeight = 100;
+    qreal jumpHeight = 70;
     const qreal y = (groundLevel - player->boundingRect().height() - factor * jumpHeight) / 2;
     player->setPos(player->getX() == player->pos().x() ?
                        player->pos().x() :
-                       player->pos().x() + ( player->getDirection() == -1 ? -2 : 2), y);
+                       player->pos().x() + 2 * player->getDirection(), y);
 }
 
 void LevelScene::keyPressEvent(QKeyEvent *event)
 {
+    QCoreApplication::processEvents();
     if (!firstInput)  {
         firstInput = true;
         emit didFirstInput();
@@ -289,7 +281,6 @@ bool LevelScene::intersect(Player* player, QList<QGraphicsItem*> list)
 {
     for (auto i: list)
     {
-        qDebug() << "TYPE: " << i->type() ;
         if (player->boundingRect().y() * 2 + player->boundingRect().height() - i->boundingRect().top() <= 4)
         {
             return true;

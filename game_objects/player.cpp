@@ -66,8 +66,6 @@ qreal Player::jumpFactor() const
 
 void Player::walk(bool right)
 {
-    const int leftBorder = 390;
-    const int rightBorder = 570 - boundingRect().width();
     int step = 25;
     if (right)
     {

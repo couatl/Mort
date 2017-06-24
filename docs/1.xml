@@ -8,12 +8,12 @@
     	<element>
     		<type>Player</type>
     		<x>0</x>
-    		<y>0</y>
+    		<y>50</y>
     	</element>
         <element>
             <type>Goal</type>
-            <x>20</x>
-            <y>155</y>
+            <x>1700</x>
+            <y>360</y>
         </element>
     	<element>
     		<type>Block</type>
@@ -55,5 +55,80 @@
     		<x>688</x>
     		<y>453</y>
     	</element>
+        <element>
+            <type>Block</type>
+            <x>774</x>
+            <y>453</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>860</x>
+            <y>453</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>946</x>
+            <y>453</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>1032</x>
+            <y>453</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>1118</x>
+            <y>453</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>1204</x>
+            <y>453</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>1290</x>
+            <y>453</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>1376</x>
+            <y>453</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>1462</x>
+            <y>453</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>1548</x>
+            <y>453</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>1634</x>
+            <y>453</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>1720</x>
+            <y>453</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>1806</x>
+            <y>453</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>1892</x>
+            <y>453</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>1978</x>
+            <y>453</y>
+        </element>                              
     </elements>
 </sources>

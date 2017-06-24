@@ -14,8 +14,6 @@
 #include "../game_objects/clockfacade.h"
 
 //  TODO: баг зависание игрока
-//  TODO: не рассматривать брокен блоки как препятствия
-//  TODO: переписать на анимациях полет
 
 namespace Ui {
 class GameWindow;

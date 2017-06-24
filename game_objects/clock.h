@@ -20,9 +20,7 @@ private:
 public:
     inline Clock(QWidget* , class State *);
 
-    virtual ~Clock() {
-        delete _state;
-    }
+    virtual ~Clock() { }
 
     inline void MakeNormal( );
 

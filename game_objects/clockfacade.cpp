@@ -24,9 +24,9 @@ void ClockFacade::read(QWidget *widget)
         clocks[1] = new Clock(widget);
         clocks[2] = new Clock(widget);
 
-        clock_timers[0] = new Timer(widget);
-        clock_timers[1] = new Timer(widget, 143);
-        clock_timers[2] = new Timer(widget, 243);
+        clock_timers[0] = new Timer(widget, 61, 1000, false);
+        clock_timers[1] = new Timer(widget, 143, 1000, false);
+        clock_timers[2] = new Timer(widget, 243, 1000, false);
         return;
     } else  {
 
@@ -53,7 +53,7 @@ void ClockFacade::read(QWidget *widget)
                 }
             }
             if(xmlReader.name() == "timer"){
-                clock_timers[i++] = new Timer(widget, xmlReader.readElementText().toInt());
+                clock_timers[i++] = new Timer(widget, xmlReader.readElementText().toInt(), 1000, false);
             }
 
         }
