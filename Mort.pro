@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui svg
+QT       += core gui svg multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -40,6 +40,7 @@ SOURCES += \
     game_objects/abstractblock.cpp \
     game_objects/clockfacade.cpp \
     ui/button.cpp
+    game_objects/house.cpp \
 
 HEADERS += \
         ui/gamewindow.h \
@@ -58,6 +59,7 @@ HEADERS += \
     game_objects/brokenblockbuilder.h \
     game_objects/clockfacade.h \
     ui/button.h
+    game_objects/house.h \
 
 FORMS += \
         ui/gamewindow.ui \
