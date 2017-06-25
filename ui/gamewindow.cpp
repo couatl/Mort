@@ -15,8 +15,12 @@
 #include "aboutdialog.h"
 
 #include <QDebug>
+#include <QGLFormat>
 
 QThread *workerThread;
+
+//QMediaPlayer* player = new QMediaPlayer;
+//QMediaPlayer* player2 = new QMediaPlayer;
 
 QGraphicsDropShadowEffect* ShadowEffect(QGraphicsDropShadowEffect* eff)
 {
@@ -40,6 +44,8 @@ GameWindow::GameWindow(QWidget *parent) :
     this->setWindowTitle("Mort");
 
     ui->stackedWidget->setCurrentIndex(0);
+    ui->userLineEdit->setVisible(false);
+    ui->pushButton->setVisible(false);
 
     int id = QFontDatabase::addApplicationFont(":/rsc/resources/ITCBLKAD.TTF");
     QString font_name = QFontDatabase::applicationFontFamilies(id).at(0);
@@ -58,6 +64,7 @@ GameWindow::GameWindow(QWidget *parent) :
     connect(this, &GameWindow::clicked_1, this, &GameWindow::launchGame_1);
 
     drawBackground();
+    drawLoading();
 
     // for firstPage
     ui->userLineEdit->setFont(font);
@@ -75,6 +82,9 @@ GameWindow::GameWindow(QWidget *parent) :
 
     if (!user.exist())
     {
+        //player->setMedia(QUrl::fromLocalFile("/Users/ilamoskalev/Downloads/1.mp3"));
+        //player->setVolume(50);
+        //player->play();
         connect(timer_message, &Timer::timeout, this, &GameWindow::writeMessage);
         connect(ui->userLineEdit, SIGNAL(returnPressed()), ui->pushButton, SIGNAL(clicked()));
     }
@@ -86,6 +96,21 @@ GameWindow::GameWindow(QWidget *parent) :
         drawLoading();
         ui->stackedWidget->setCurrentIndex(1);
     }
+
+    ui->view->setRenderHints(QPainter::Antialiasing);
+    ui->view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ui->view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ui->view->setCacheMode(QGraphicsView::CacheBackground);
+
+    QGLFormat fmt(QGL::SampleBuffers | QGL::DirectRendering);
+    fmt.setSwapInterval(0);
+    fmt.setDoubleBuffer(false);
+
+    ui->view->setViewport(new QGLWidget(fmt));
+    ui->view->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+
+    qDebug() << ui->view->viewport()->pos();
+    qDebug() << ui->view->viewport()->geometry();
 
 }
 
@@ -115,12 +140,8 @@ void GameWindow::launchGame_1()
     qDebug() << "launch game 1";
 
     clockFacade->stop(0);
-    scene = new LevelScene(ui->view, ui->timerLabel, clockFacade->clock_timers[0], &user);
 
     startLoading();
-
-    connect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
-    connect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
 }
 
 void GameWindow::completedGame_1()
@@ -166,6 +187,7 @@ void GameWindow::mousePressEvent(QMouseEvent *event)
         emit clicked_3();
         break;
     }
+    QMainWindow::mousePressEvent(event);
 }
 
 void GameWindow::drawClocks()
@@ -179,12 +201,10 @@ void GameWindow::drawClocks()
         times[i]->setFont(font);
         times[i]->setPalette(palette);
 
-        if (clockFacade->getState(i) == _succeed)
-        {
+        if (clockFacade->getState(i) == _succeed) {
             times[i]->setStyleSheet("QLabel { color : green; }");
         }
-        else if (clockFacade->time(i) <= 10)
-        {
+        else if (clockFacade->time(i) <= 10) {
             times[i]->setStyleSheet("QLabel { color : red; }");
         }
         times[i]->setText(clockFacade->clock_timers[i]->getDecoratedTime());
@@ -206,12 +226,14 @@ void GameWindow::drawClocks()
 
 void GameWindow::drawLoading()
 {
+    //player2->setMedia(QUrl::fromLocalFile("/Users/ilamoskalev/Downloads/2.mp3"));
+    //player2->setVolume(50);
+    //player2->play();
     QPixmap _loading(":/rsc/images/loading.png");
     loading->setGeometry(0, 0, 960, 540);
     _loading = _loading.scaled(960, 540,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
     loading->setPixmap(_loading);
     loading->raise();
-    loading->setDisabled(true);
     loading->hide();
 }
 
@@ -245,11 +267,19 @@ void GameWindow::clockRead()
 }
 
 void GameWindow::writeMessage()  {
-    QString message = "Hello, bla bla bla \n\n\n\n\n Enter your name";
+    QString message = "My sweet child! \n"
+            "It's time for me to leave you alone. I was teaching you\n"
+            "all your life and since now you finally have your chance\n"
+            "to declare yourself as a true master. \n"
+            "I proudly proclaim new Death: \n"
+            "May the great Universe blessed you with luck.";
 
         if (ui->message->text().length() == message.length())
         {
+            //player->stop();
             timer_message->stop();
+            ui->userLineEdit->setVisible(true);
+            ui->pushButton->setVisible(true);
         }
         else
         {
@@ -260,55 +290,48 @@ void GameWindow::writeMessage()  {
 void GameWindow::endLoading()
 {
     // "затухание"
-    QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(this);
+    QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect();
     loading->setGraphicsEffect(eff);
     animationEnd = new QPropertyAnimation(eff, "opacity");
     animationEnd->setDuration(1700);
     animationEnd->setStartValue(1);
     animationEnd->setEndValue(0);
     animationEnd->setEasingCurve(QEasingCurve::OutBack);
-    workerThread = new QThread(this);
+    workerThread = new QThread();
     animationEnd->moveToThread(workerThread);
 
-    connect(workerThread, &QThread::started, this, &GameWindow::processLoading);
-    connect(animationEnd, &QPropertyAnimation::finished, workerThread, &QThread::quit);
-    connect(workerThread, &QThread::finished, animationEnd, &QPropertyAnimation::deleteLater);
-    connect(animationEnd, &QPropertyAnimation::destroyed, workerThread, &QThread::deleteLater);
-    workerThread->start();
-
-    switch(ui->stackedWidget->currentIndex()){
+    switch(ui->stackedWidget->currentIndex())  {
          case 0:
-             qDebug() << "case 0";
              clockRead();
              clockWrite();
-             ui->stackedWidget->setCurrentIndex(1);
              drawBackground();
              drawShelf();
              drawClocks();
+             ui->stackedWidget->setCurrentIndex(1);
              break;
          case 1:
-             qDebug() << "case 1";
-             hideClocks();
+             clockFacade->hide();
+             scene = new LevelScene(ui->view, ui->timerLabel, ui->keyLabel, clockFacade->clock_timers[0], &user);
+             connect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
+             connect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
              ui->stackedWidget->setCurrentIndex(2);
              ui->view->setScene(scene);
              ui->view->setFocus();
+             scene->getTimerAnimation()->start();
              break;
          case 2:
-             qDebug() << "case 2";
-             showClocks();
+             clockFacade->show();
              ui->stackedWidget->setCurrentIndex(1);
              delete scene;
              break;
          }
-
-    qDebug() << workerThread->isRunning() << " " << workerThread->isFinished();
-    qDebug() << animationEnd->state();
+    connect(workerThread, &QThread::started, this, &GameWindow::processLoading);
+    workerThread->start();
 }
 
 void GameWindow::startLoading()
 {
     drawLoading();
-
     // "появление"
     loading->show();
     QGraphicsOpacityEffect *eff = new QGraphicsOpacityEffect(this);
@@ -319,18 +342,35 @@ void GameWindow::startLoading()
     animationStart->setEndValue(1);
     animationStart->setEasingCurve(QEasingCurve::InBack);
     animationStart->start(QPropertyAnimation::DeleteWhenStopped);
-    qDebug() << "start loading";
     connect(animationStart, &QPropertyAnimation::finished, this, &GameWindow::endLoading);
 }
 
-void GameWindow::hideClocks()
+void GameWindow::clearAll()
 {
     clockFacade->hide();
+    ui->clock_1->hide();
+    ui->clock_2->hide();
+    ui->clock_3->hide();
+    ui->time_1->hide();
+    ui->time_2->hide();
+    ui->time_3->hide();
+    ui->label->hide();
+    ui->score->hide();
+    ui->shelf->hide();
 }
 
-void GameWindow::showClocks()
+void GameWindow::showAll()
 {
     clockFacade->show();
+    ui->clock_1->show();
+    ui->clock_2->show();
+    ui->clock_3->show();
+    ui->time_1->show();
+    ui->time_2->show();
+    ui->time_3->show();
+    ui->label->show();
+    ui->score->show();
+    ui->shelf->show();
 }
 
 void GameWindow::processLoading()
@@ -339,7 +379,9 @@ void GameWindow::processLoading()
    while (animationEnd->state() != QPropertyAnimation::Stopped) {
      QCoreApplication::processEvents();
    }
-   loading->hide();
+   workerThread->quit();
+   workerThread->deleteLater();
+   animationEnd->deleteLater();
 }
 
 void GameWindow::on_pushButton_clicked()
@@ -348,6 +390,11 @@ void GameWindow::on_pushButton_clicked()
         {
             ui->errorLabel->setText("You MUST have name!");
         }
+    else if (ui->userLineEdit->text().length()>9)
+    {
+        ui->errorLabel->setText("Username must be less than 10 characters");
+        ui->errorLabel->setStyleSheet("QLabel { color : red; }");
+    }
     // TODO : регулярное выражение для всех форматов вида
     else if (ui->userLineEdit->text() == "death" || ui->userLineEdit->text() == "Death")
         {

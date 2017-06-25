@@ -8,7 +8,8 @@ class Timer: public QTimer
 {
     Q_OBJECT
 public:
-    Timer(QObject* parent = nullptr, int _time = 61, int _period = 1000);
+    Timer(QObject* parent = nullptr, int _time = 61, int _period = 1000, bool start = true);
+    virtual ~Timer() {}
     void decrease();
 
     inline int getTime() const

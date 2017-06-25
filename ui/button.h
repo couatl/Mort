@@ -6,11 +6,11 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsSceneMouseEvent>
 
-class Button:public QObject, public QGraphicsRectItem{
+class Button:   public QObject, public QGraphicsRectItem  {
     Q_OBJECT
 public:
-    // Конструктор
-    Button(QString name, QFont font, QGraphicsItem* parent=NULL);
+    // Конструкторы
+    Button(QString name, QFont font, QGraphicsItem* parent = NULL);
 
     // Методы событий
     void mousePressEvent(QGraphicsSceneMouseEvent *event);

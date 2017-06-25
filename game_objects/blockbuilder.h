@@ -12,6 +12,9 @@ public:
     void buildPixmap() {
         block->setImage(":/rsc/images/tile.png", 86);
     }
+    void buildType() {
+        block->setType(AbstractBlock::Block);
+    }
 };
 
 #endif // BLOCKBUILDER_H

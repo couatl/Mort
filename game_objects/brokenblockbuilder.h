@@ -32,6 +32,10 @@ public:
         block->setImage(":/rsc/images/broken_left.png", WIDTH);
         secondBlock->setImage(":/rsc/images/broken_right.png", WIDTH);
     }
+    void buildType() {
+        block->setType(AbstractBlock::BrokenBlock);
+        secondBlock->setType(AbstractBlock::BrokenBlock);
+    }
 };
 
 #endif // BRPKENBLOCKBUILDER_H

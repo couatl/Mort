@@ -1,10 +1,12 @@
 #include "timer.h"
 #include <QString>
 
-Timer::Timer(QObject* parent, int _time, int _period):
+Timer::Timer(QObject* parent, int _time, int _period, bool start):
     QTimer(parent), time(_time)
 {
-    this->start(_period);
+    this->setInterval(_period);
+    if(start)
+        this->start();
 }
 
 void Timer::decrease()

@@ -2,6 +2,7 @@
 #define BLOCKWAITER_H
 
 #include "abstractblockbuilder.h"
+#include <QDebug>
 
 class BlockWaiter
 {
@@ -23,6 +24,7 @@ public:
     void constructBlock(int x, int y){
         builder->createNewBlock(x, y);
         builder->buildPixmap();
+        builder->buildType();
     }
 };
 

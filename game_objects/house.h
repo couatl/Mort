@@ -1,13 +1,13 @@
-#ifndef GOAL_H
-#define GOAL_H
+#ifndef HOUSE_H
+#define HOUSE_H
 
 #include <QGraphicsItem>
 
-class Goal : public QGraphicsItem
+class House: public QGraphicsItem
 {
 public:
-    explicit Goal(int _x = 0, int _y = 0, QGraphicsItem *parent = 0);
-    virtual ~Goal() { }
+    House(int _x, int _y, QGraphicsItem* parent = 0);
+    virtual ~House() { }
 
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
@@ -19,4 +19,4 @@ private:
     int y;
 };
 
-#endif // GOAL_H
+#endif // HOUSE_H

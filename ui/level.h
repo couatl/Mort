@@ -19,6 +19,9 @@ public:
     ~Level();
 
     void loadLevel(int level);
+    QVector<AbstractBlock*>& getBlocks() {
+        return blocks;
+    }
 
     Player* getPlayer() { return player; }
     Goal* getGoal() { return goal; }
@@ -33,12 +36,11 @@ private:
     BlockBuilder builder;
     BrokenBlockBuilder builder_2;
 
-    //useless?
-    int countBlocks, countBrokenBlocks;
-
     QVector<AbstractBlock*> blocks;
     Player* player;
     Goal* goal;
+
+    int countBlocks, countBrokenBlocks;
 
 protected:
     LevelScene* scene;

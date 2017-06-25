@@ -44,3 +44,8 @@ void AbstractBlock::setXY(int _x, int _y)
     x = _x;
     y = _y;
 }
+
+void AbstractBlock::setType(AbstractBlock::BlockType _type)
+{
+    m_type = _type;
+}
