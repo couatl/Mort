@@ -18,6 +18,9 @@
 
 QThread *workerThread;
 
+//QMediaPlayer* player = new QMediaPlayer;
+//QMediaPlayer* player2 = new QMediaPlayer;
+
 QGraphicsDropShadowEffect* ShadowEffect(QGraphicsDropShadowEffect* eff)
 {
     eff->setOffset(0, 0);
@@ -78,6 +81,9 @@ GameWindow::GameWindow(QWidget *parent) :
 
     if (!user.exist())
     {
+        //player->setMedia(QUrl::fromLocalFile("/Users/ilamoskalev/Downloads/1.mp3"));
+        //player->setVolume(50);
+        //player->play();
         connect(timer_message, &Timer::timeout, this, &GameWindow::writeMessage);
         connect(ui->userLineEdit, SIGNAL(returnPressed()), ui->pushButton, SIGNAL(clicked()));
     }
@@ -204,6 +210,9 @@ void GameWindow::drawClocks()
 
 void GameWindow::drawLoading()
 {
+    //player2->setMedia(QUrl::fromLocalFile("/Users/ilamoskalev/Downloads/2.mp3"));
+    //player2->setVolume(50);
+    //player2->play();
     QPixmap _loading(":/rsc/images/loading.png");
     loading->setGeometry(0, 0, 960, 540);
     _loading = _loading.scaled(960, 540,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
@@ -251,6 +260,7 @@ void GameWindow::writeMessage()  {
 
         if (ui->message->text().length() == message.length())
         {
+            //player->stop();
             timer_message->stop();
             ui->userLineEdit->setVisible(true);
             ui->pushButton->setVisible(true);
