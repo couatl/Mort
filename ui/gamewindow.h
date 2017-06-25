@@ -14,6 +14,8 @@
 #include "../game_objects/clockfacade.h"
 
 //  TODO: баг зависание игрока
+//  TODO: мигание loading
+//  TODO: экраны выключения/включения
 
 namespace Ui {
 class GameWindow;

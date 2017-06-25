@@ -36,9 +36,10 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, QLabel* _keyLa
     level->loadLevel(1);
 
     goal = level->getGoal();
+    goal->hide();
     house = new House(goal->boundingRect().x(), goal->boundingRect().bottom() - 240);
     this->addItem(house);
-    this->addItem(goal);
+    //this->addItem(goal);
 
     player = level->getPlayer();
     this->addItem(player);
@@ -146,6 +147,9 @@ void LevelScene::finishLevel()
 void LevelScene::playerJump(qreal factor)
 {
     qreal jumpHeight = 70;
+    //
+    if (player->pos().x() > 50)
+        view->centerOn(player);
     const qreal y = (groundLevel - player->boundingRect().height() - factor * jumpHeight) / 2;
     player->setPos(player->getX() == player->pos().x() ?
                        player->pos().x() :
@@ -155,10 +159,13 @@ void LevelScene::playerJump(qreal factor)
 void LevelScene::keyPressEvent(QKeyEvent *event)
 {
     QCoreApplication::processEvents();
+
     if (!firstInput)  {
         firstInput = true;
         emit didFirstInput();
     }
+
+    qDebug() << timerAnimation->isActive();
 
     if(player->isEnabled())
     {
@@ -210,7 +217,7 @@ void LevelScene::displayGameOverWindow(QString textToDisplay)
         this->items()[i]->setEnabled(false);
     }
     this->removeItem(player);
-    this->removeItem(goal);
+    //this->removeItem(goal);
 
     // Затемняем игру
     QGraphicsRectItem* panel = new QGraphicsRectItem(0,0,960,540);
@@ -255,7 +262,6 @@ void LevelScene::timeUpdate()
         timerLabel->setText("0:00");
         timer->stop();
         displayGameOverWindow("I am disappointed");
-        //emit levelFail();
         return;
     }
 
@@ -272,7 +278,6 @@ void LevelScene::timeUpdate()
         timerLabel->setText("0:00");
         timer->stop();
         displayGameOverWindow("I am disappointed");
-        //emit levelFail();
         return;
     }
 }

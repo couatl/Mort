@@ -66,7 +66,7 @@ private:
     Level* level;
 
     // Блок для анимации полета
-    qreal yAnimation;
+    int yAnimation;
     bool upAnimation;
     Timer* timerAnimation;
 

@@ -2,7 +2,6 @@
 #define CLOCK_H
 
 #include <QLabel>
-
 #include <QPixmap>
 #include <QFile>
 #include <QTextStream>
@@ -19,186 +18,227 @@ private:
     class State* _state;
 public:
     inline Clock(QWidget* , class State *);
-
-    virtual ~Clock() { }
-
-    inline void MakeNormal( );
-
-    inline void MakeHover( );
-
-    inline void MakeSucceed( );
-
-    inline void MakeFailed( );
-
+    inline void MakeNormal();
+    inline void MakeHover();
+    inline void MakeSucceed();
+    inline void MakeFailed();
     inline bool IsFocused();
-
     inline bool IsNormal();
-
     inline int GetState();
-
-    inline void setState(State *s)
-        {
-            _state = s;
-        }
+    inline void setState(State *s);
 };
 
 class State {
 public:
-    inline virtual void makeNormal( Clock*) {}
-    inline virtual void makeHover( Clock*){}
-    inline virtual void makeSucceed( Clock*){}
-    inline virtual void makeFailed( Clock*){}
-    inline virtual bool isFocused(){
-        return false;
-    }
-    inline virtual bool isNormal(){
-        return true;
-    }
-    inline virtual int getState(){
-        return _failed;
-    }
-    inline virtual void drawClock( Clock* ){}
+    inline virtual void makeNormal( Clock*) = 0;
+    inline virtual void makeHover( Clock*) = 0;
+    inline virtual void makeSucceed( Clock*) = 0;
+    inline virtual void makeFailed( Clock*) = 0;
+    inline virtual bool isFocused() = 0;
+    inline virtual bool isNormal() = 0;
+    inline virtual int getState() = 0;
+    inline virtual void drawClock( Clock* ) = 0;
 };
 
 class NormalState: public State {
-public:
-    inline void makeHover( Clock* clock);
-    inline void makeSucceed( Clock* clock);
-    inline void makeFailed( Clock* clock);
-    inline bool isFocused(){
-        return false;
-    }
-    inline bool isNormal(){
-        return true;
-    }
-    inline int getState(){
-        return _normal;
-    }
-    inline void drawClock( Clock* clck ){
-        QPixmap clock;
-        clock.load(":/rsc/images/clock.png");
-        clock = clock.scaled(clck->size(), Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
-        clck->setPixmap(clock);
-    }
+    inline virtual void makeNormal( Clock*);
+    inline virtual void makeHover( Clock*);
+    inline virtual void makeSucceed( Clock*);
+    inline virtual void makeFailed( Clock*);
+    inline virtual bool isFocused();
+    inline virtual bool isNormal();
+    inline virtual int getState();
+    inline virtual void drawClock( Clock* );
 };
-
 class HoverState: public State {
-public:
-    inline void makeNormal( Clock* clock);
-    inline void makeSucceed( Clock* clock);
-    inline void makeFailed( Clock* clock);
-    inline bool isFocused(){
-    return true;
-    }
-    inline bool isNormal(){
-    return false;
-    }
-    inline int getState(){
-        return _hover;
-    }
-    inline void drawClock( Clock* clck ){
-        QPixmap clock;
-        clock.load(":/rsc/images/clock_hover.png");
-        clock = clock.scaled(clck->size(), Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
-        clck->setPixmap(clock);
-    }
+    inline virtual void makeNormal( Clock*);
+    inline virtual void makeHover( Clock*);
+    inline virtual void makeSucceed( Clock*);
+    inline virtual void makeFailed( Clock*);
+    inline virtual bool isFocused();
+    inline virtual bool isNormal();
+    inline virtual int getState();
+    inline virtual void drawClock( Clock* );
 };
-
 class SucceedState: public State {
-public:
-    inline bool isFocused(){
-        return false;
-    }
-    inline bool isNormal(){
-        return false;
-    }
-    inline int getState(){
-        return _succeed;
-    }
-    inline void drawClock( Clock* clck ){
-        QPixmap clock;
-        clock.load(":/rsc/images/clock_suc.png");
-        clock = clock.scaled(clck->size(), Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
-        clck->setPixmap(clock);
-    }
+    inline virtual void makeNormal( Clock*);
+    inline virtual void makeHover( Clock*);
+    inline virtual void makeSucceed( Clock*);
+    inline virtual void makeFailed( Clock*);
+    inline virtual bool isFocused();
+    inline virtual bool isNormal();
+    inline virtual int getState();
+    inline virtual void drawClock( Clock* );
 };
-
 class FailedState: public State {
-public:
-    inline bool isFocused(){
-        return false;
-    }
-    inline bool isNormal(){
-        return false;
-    }
-    inline int getState(){
-        return _failed;
-    }
-    inline void drawClock( Clock* clck ){
-        QPixmap clock;
-        clock.load(":/rsc/images/clock_fail.png");
-        clock = clock.scaled(clck->size(), Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
-        clck->setPixmap(clock);
-    }
+    inline virtual void makeNormal( Clock*);
+    inline virtual void makeHover( Clock*);
+    inline virtual void makeSucceed( Clock*);
+    inline virtual void makeFailed( Clock*);
+    inline virtual bool isFocused();
+    inline virtual bool isNormal();
+    inline virtual int getState();
+    inline virtual void drawClock( Clock* );
 };
 
-void NormalState::makeHover( Clock* clock){
+//NormalState
+inline void NormalState::makeHover( Clock* clock){
     clock->setState(new HoverState());
 }
-void NormalState::makeSucceed( Clock* clock){
+inline void NormalState::makeSucceed( Clock* clock){
     clock->setState(new SucceedState());
 }
-void NormalState::makeFailed( Clock* clock){
+inline void NormalState::makeFailed( Clock* clock){
     clock->setState(new FailedState());
 }
+inline void NormalState::makeNormal(Clock * clock){
+    Q_UNUSED(clock)
+}
+inline bool NormalState::isFocused(){
+    return false;
+}
+inline bool NormalState::isNormal(){
+    return true;
+}
+inline int NormalState::getState(){
+    return _normal;
+}
+inline void NormalState::drawClock( Clock* clck ){
+    QPixmap clock;
+    clock.load(":/rsc/images/clock.png");
+    clock = clock.scaled(clck->size(), Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+    clck->setPixmap(clock);
+}
 
-void HoverState::makeNormal( Clock* clock){
+//HoverState
+inline void HoverState::makeHover( Clock* clock){
+    Q_UNUSED(clock)
+}
+inline void HoverState::makeSucceed( Clock* clock){
+    clock->setState(new SucceedState());
+}
+inline void HoverState::makeFailed( Clock* clock){
+    clock->setState(new FailedState());
+}
+inline void HoverState::makeNormal(Clock * clock){
     clock->setState(new NormalState());
 }
-void HoverState::makeSucceed( Clock* clock){
-    clock->setState(new SucceedState());
+inline bool HoverState::isFocused(){
+    return true;
 }
-void HoverState::makeFailed( Clock* clock){
-    clock->setState(new FailedState());
+inline bool HoverState::isNormal(){
+    return false;
+}
+inline int HoverState::getState(){
+    return _hover;
+}
+inline void HoverState::drawClock( Clock* clck ){
+    QPixmap clock;
+    clock.load(":/rsc/images/clock_hover.png");
+    clock = clock.scaled(clck->size(), Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+    clck->setPixmap(clock);
 }
 
-Clock::Clock(QWidget* parent, State *state = new NormalState()):
-        QLabel(parent), _state(state){
+//SucceedState
+inline void SucceedState::makeHover( Clock* clock){
+    Q_UNUSED(clock)
+}
+inline void SucceedState::makeSucceed( Clock* clock){
+    Q_UNUSED(clock)
+}
+inline void SucceedState::makeFailed( Clock* clock){
+    Q_UNUSED(clock)
+}
+inline void SucceedState::makeNormal(Clock * clock){
+    Q_UNUSED(clock)
+}
+inline bool SucceedState::isFocused(){
+    return false;
+}
+inline bool SucceedState::isNormal(){
+    return false;
+}
+inline int SucceedState::getState(){
+    return _succeed;
+}
+inline void SucceedState::drawClock( Clock* clck ){
+    QPixmap clock;
+    clock.load(":/rsc/images/clock_suc.png");
+    clock = clock.scaled(clck->size(), Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+    clck->setPixmap(clock);
+}
+
+//FailedState
+inline void FailedState::makeHover( Clock* clock){
+    Q_UNUSED(clock)
+}
+inline void FailedState::makeSucceed( Clock* clock){
+    Q_UNUSED(clock)
+}
+inline void FailedState::makeFailed( Clock* clock){
+    Q_UNUSED(clock)
+}
+inline void FailedState::makeNormal(Clock * clock){
+    Q_UNUSED(clock)
+}
+inline bool FailedState::isFocused(){
+    return false;
+}
+inline bool FailedState::isNormal(){
+    return false;
+}
+inline int FailedState::getState(){
+    return _failed;
+}
+inline void FailedState::drawClock( Clock* clck ){
+    QPixmap clock;
+    clock.load(":/rsc/images/clock_fail.png");
+    clock = clock.scaled(clck->size(), Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+    clck->setPixmap(clock);
+}
+
+//Clock
+inline Clock::Clock(QWidget* parent, State *state = new NormalState()):
+QLabel(parent), _state(state){
     this->setVisible(false);
     this->setFixedSize(145, 237);
     this->setMouseTracking(true);
     _state->drawClock(this);
 }
+inline void Clock::setState(State *s) {
+    _state = s;
+}
 
-void Clock::MakeNormal( ){
+inline void Clock::MakeNormal( ){
     _state->makeNormal( this );
     _state->drawClock( this );
 }
 
-void Clock::MakeHover( ){
+inline void Clock::MakeHover( ){
     _state->makeHover( this );
     _state->drawClock( this );
 }
 
-void Clock::MakeSucceed( ){
+inline void Clock::MakeSucceed( ){
     _state->makeSucceed( this );
     _state->drawClock( this );
 }
 
-void Clock::MakeFailed( ){
+inline void Clock::MakeFailed( ){
     _state->makeFailed( this );
     _state->drawClock( this );
 }
 
-bool Clock::IsFocused(){
+inline bool Clock::IsFocused(){
     return _state->isFocused();
 }
 
-bool Clock::IsNormal(){
+inline bool Clock::IsNormal(){
     return _state->isNormal();
 }
 
-int Clock::GetState(){
+inline int Clock::GetState(){
     return _state->getState();
 }
+
 #endif // CLOCK_H
