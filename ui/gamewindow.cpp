@@ -37,7 +37,7 @@ GameWindow::GameWindow(QWidget *parent) :
     id_selected(-1),
     clockFacade(new ClockFacade()),
     times(QVector<QLabel*>(3)),
-    timer_message(new Timer(nullptr, 60, 100)),
+    timer_message(new Timer(nullptr, 60, 25)),
     loading(new QLabel(this))
 {
     ui->setupUi(this);
