@@ -6,6 +6,7 @@
 #include <QPropertyAnimation>
 
 #include "levelscene.h"
+#include "levelview.h"
 
 #include "../game_objects/user.h"
 #include "../game_objects/timer.h"
@@ -13,9 +14,12 @@
 
 #include "../game_objects/clockfacade.h"
 
-//  TODO: баг зависание игрока
 //  TODO: мигание loading
-//  TODO: экраны выключения/включения
+//  TODO: экраны завершения уровня, переделать под лейблы
+//  TODO: логика ключа
+//  TODO: вернуть отображение таймера
+//  TODO: таймер в другом потоке
+//  TODO: QMacCGContext:: Unsupported painter devtype type 1
 
 namespace Ui {
 class GameWindow;
@@ -89,6 +93,7 @@ private:
     QFont font;
     QPalette palette;
 
+    LevelView* view;
     LevelScene* scene;
 };
 

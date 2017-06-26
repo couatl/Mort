@@ -27,6 +27,8 @@ Player::Player(int _x, int _y, QGraphicsObject *parent) : QGraphicsObject(parent
     jumpAnimation->setEndValue(0);
     jumpAnimation->setDuration(900);
     jumpAnimation->setEasingCurve(QEasingCurve::OutInSine);
+
+    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
 }
 
 void Player::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {

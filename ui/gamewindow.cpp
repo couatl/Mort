@@ -150,6 +150,7 @@ void GameWindow::failedGame_1()
     ui->time_1->setText("0:00");
     ui->time_1->setStyleSheet("QLabel { color : red; }");
     startLoading();
+    ui->stackedWidget->setFocus();
 }
 
 void GameWindow::mousePressEvent(QMouseEvent *event)
@@ -295,18 +296,20 @@ void GameWindow::endLoading()
              break;
          case 1:
              clockFacade->hide();
-             scene = new LevelScene(ui->view, ui->timerLabel, ui->keyLabel, clockFacade->clock_timers[0], &user);
+             view = new LevelView(ui->gameLevel);
+             scene = new LevelScene(view, ui->timerLabel, ui->keyLabel, clockFacade->clock_timers[0], &user);
              connect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
              connect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
              ui->stackedWidget->setCurrentIndex(2);
-             ui->view->setScene(scene);
-             ui->view->setFocus();
+             view->setScene(scene);
+             view->setFocus();
              scene->getTimerAnimation()->start();
              break;
          case 2:
              clockFacade->show();
              ui->stackedWidget->setCurrentIndex(1);
              delete scene;
+             delete view;
              break;
          }
     connect(workerThread, &QThread::started, this, &GameWindow::processLoading);
@@ -364,8 +367,8 @@ void GameWindow::processLoading()
      QCoreApplication::processEvents();
    }
    workerThread->quit();
-   workerThread->deleteLater();
    animationEnd->deleteLater();
+   workerThread->deleteLater();
 }
 
 void GameWindow::on_pushButton_clicked()

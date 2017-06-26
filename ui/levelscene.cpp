@@ -7,6 +7,7 @@
 #include <QFont>
 #include <QPushButton>
 #include <QCoreApplication>
+#include <QGraphicsSimpleTextItem>
 
 #include <QDebug>
 
@@ -15,7 +16,7 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, QLabel* _keyLa
     timer(_timer),
     user(_user),
     isWin(false),
-    hasKey(false),
+    hasKey(true),
     firstInput(false),
     view(_view),
     timerLabel(_timerLabel),
@@ -26,7 +27,7 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, QLabel* _keyLa
     countMoved(10)
 {
     // ширина равна 86 (ширина 1 блока) * 24
-    this->setSceneRect(0, 0, 2064, 520);
+    this->setSceneRect(0, 0, 2064, 540);
     QPixmap _background(":/rsc/images/bg.png");
     _background = _background.scaled(543, 540, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
     this->setBackgroundBrush(QBrush(_background));
@@ -39,7 +40,7 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, QLabel* _keyLa
     goal->hide();
     house = new House(goal->boundingRect().x(), goal->boundingRect().bottom() - 240);
     this->addItem(house);
-    //this->addItem(goal);
+    this->addItem(goal);
 
     player = level->getPlayer();
     this->addItem(player);
@@ -52,7 +53,7 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, QLabel* _keyLa
     QPixmap _key(":/rsc/images/key.png");
     _key = _key.scaled(61, 46, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
     keyLabel->setPixmap(_key);
-    keyLabel->hide();
+    //keyLabel->hide();
 
     // коннектим сигналы-слоты
     connect(timer, &Timer::timeout, this, &LevelScene::timeUpdate);
@@ -72,6 +73,11 @@ LevelScene::~LevelScene() {
 void LevelScene::PlayerAnimation()
 {
     QCoreApplication::processEvents();
+
+    //Следовать за пользователем
+    if (player->isEnabled())
+    view->ensureVisible(player, 400);
+
     // Провалился за экран
     if (player->pos().y() >= (540 - 132) / 2)
     {
@@ -81,10 +87,6 @@ void LevelScene::PlayerAnimation()
     //  falling
     int playerState = player->getState();
     int isFall = player->getState() == Player::falling ? 3 : 0;
-
-    //
-    if (player->pos().x() > 50)
-        view->centerOn(player);
 
     //  flying animation
     if (playerState == Player::normal)
@@ -120,7 +122,7 @@ void LevelScene::PlayerAnimation()
         if (intersect(player, player->collidingItems()))
            player->setState(Player::normal);
     }
-    else if (player->collidesWithItem(goal)) {
+    else if (player->collidesWithItem(goal) && hasKey) {
         isWin = true;
         displayGameOverWindow("Good job, oh sweet child.");
     }
@@ -196,14 +198,11 @@ void LevelScene::keyPressEvent(QKeyEvent *event)
     }
     // Отключает скролл клавишами после смерти персонажа
     else {
-        switch (event->key()) {
-        case Qt::Key_Right:
-        case Qt::Key_D:
-        case Qt::Key_Left:
-        case Qt::Key_A:
-        case Qt::Key_Space:
-        case Qt::Key_Up:
-            break;
+        if(event->isAutoRepeat()) {
+            return;
+        }
+        else {
+            finishLevel();
         }
     }
 }
@@ -228,6 +227,8 @@ void LevelScene::displayGameOverWindow(QString textToDisplay)
     panel->setOpacity(0.65);
     this->addItem(panel);
 
+    view->centerOn(400,0);
+
     // Отрисовка картинки письма
     QLabel* label = new QLabel();
     label->resize(600,273);
@@ -244,15 +245,17 @@ void LevelScene::displayGameOverWindow(QString textToDisplay)
     QFont font = QFont(font_name, 43, QFont::Normal);
 
     // Заключительное сообщение
-    QGraphicsTextItem* overText = new QGraphicsTextItem(textToDisplay);
+    QGraphicsSimpleTextItem* overText = new QGraphicsSimpleTextItem(textToDisplay);
     overText->setPos(300,175);
     overText->setFont(font);
     this->addItem(overText);
 
-    Button* MainMenu = new Button(QString("ok"), font);
-    MainMenu->setPos(422,410);
-    this->addItem(MainMenu);
-    connect(MainMenu, &Button::clicked, this, &LevelScene::finishLevel);
+    QGraphicsSimpleTextItem* logText = new QGraphicsSimpleTextItem("Press any button to continue");
+    logText->setPos(390,410);
+    logText->setBrush(QBrush(Qt::white));
+    QFont font_2 = QFont("Arial", 16, QFont::Cursive);
+    logText->setFont(font_2);
+    this->addItem(logText);
 }
 
 void LevelScene::timeUpdate()
