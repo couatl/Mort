@@ -7,6 +7,7 @@
 #include <QPushButton>
 #include <QCoreApplication>
 #include <QGraphicsSimpleTextItem>
+#include <QMediaPlayer>
 
 #include <QDebug>
 
@@ -148,6 +149,10 @@ void LevelScene::PlayerAnimation()
     }
     else if (player->collidesWithItem(key) && !hasKey)
     {
+        QMediaPlayer* player3 = new QMediaPlayer;
+        player3->setMedia(QUrl("qrc:/music/resources/1.mp3"));
+        player3->setVolume(50);
+        player3->play();
         hasKey = true;
         this->removeItem(key);
         keyLabel->show();
