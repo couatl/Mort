@@ -1,6 +1,7 @@
 #include "gamewindow.h"
 #include "ui_gamewindow.h"
 
+#include <QMediaPlayer>
 #include <QMessageBox>
 #include <QFontDatabase>
 #include <QFont>
@@ -18,8 +19,8 @@
 
 QThread *workerThread;
 
-//QMediaPlayer* player = new QMediaPlayer;
-//QMediaPlayer* player2 = new QMediaPlayer;
+QMediaPlayer* player = new QMediaPlayer;
+QMediaPlayer* player2 = new QMediaPlayer;
 
 QGraphicsDropShadowEffect* ShadowEffect(QGraphicsDropShadowEffect* eff)
 {
@@ -81,9 +82,9 @@ GameWindow::GameWindow(QWidget *parent) :
 
     if (!user.exist())
     {
-        //player->setMedia(QUrl::fromLocalFile("/Users/ilamoskalev/Downloads/1.mp3"));
-        //player->setVolume(50);
-        //player->play();
+        player->setMedia(QUrl("qrc:/music/resources/1.mp3"));
+        player->setVolume(50);
+        player->play();
         connect(timer_message, &Timer::timeout, this, &GameWindow::writeMessage);
         connect(ui->userLineEdit, SIGNAL(returnPressed()), ui->pushButton, SIGNAL(clicked()));
     }
@@ -93,6 +94,9 @@ GameWindow::GameWindow(QWidget *parent) :
         drawClocks();
         drawShelf();
         drawLoading();
+        player2->setMedia(QUrl("qrc:/music/resources/2.mp3"));
+        player2->setVolume(50);
+        player2->play();
         ui->stackedWidget->setCurrentIndex(1);
     }
 
@@ -261,10 +265,13 @@ void GameWindow::writeMessage()  {
 
         if (ui->message->text().length() == message.length())
         {
-            //player->stop();
+            player->stop();
             timer_message->stop();
             ui->userLineEdit->setVisible(true);
             ui->pushButton->setVisible(true);
+            player2->setMedia(QUrl("qrc:/music/resources/1.mp3"));
+            player2->setVolume(50);
+            player2->play();
         }
         else
         {
