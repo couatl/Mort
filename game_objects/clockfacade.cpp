@@ -1,5 +1,5 @@
 #include "clockfacade.h"
-
+#include <QDebug>
 ClockFacade::ClockFacade():
     clock_timers(QVector<Timer*>(3)),
     clocks(QVector<Clock*>(3))
@@ -124,11 +124,11 @@ void ClockFacade::draw()
     clocks[2]->setGeometry(590, 150, 145, 237);
 }
 
-int ClockFacade::press(int &id_selected)
+int ClockFacade::press(int &id_selected, QPoint mousePos)
 {
-    if (clocks[0]->underMouse() || clocks[1]->underMouse() || clocks[2]->underMouse()){
+    if (clocks[0]->geometry().contains(mousePos) || clocks[1]->geometry().contains(mousePos) || clocks[2]->geometry().contains(mousePos)){
         for(int i = 0; i < 3; ++i){
-            if (clocks[i]->underMouse() && (clocks[i]->IsNormal() || clocks[i]->IsFocused())) {
+            if (clocks[i]->geometry().contains(mousePos) && (clocks[i]->IsNormal() || clocks[i]->IsFocused())) {
                 if(clocks[i]->IsFocused())
                     return i;
                 else if(id_selected == -1) {

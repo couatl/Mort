@@ -15,7 +15,6 @@
 #include "aboutdialog.h"
 
 #include <QDebug>
-#include <QGLFormat>
 
 QThread *workerThread;
 
@@ -97,21 +96,6 @@ GameWindow::GameWindow(QWidget *parent) :
         ui->stackedWidget->setCurrentIndex(1);
     }
 
-    ui->view->setRenderHints(QPainter::Antialiasing);
-    ui->view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    ui->view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    ui->view->setCacheMode(QGraphicsView::CacheBackground);
-
-    QGLFormat fmt(QGL::SampleBuffers | QGL::DirectRendering);
-    fmt.setSwapInterval(0);
-    fmt.setDoubleBuffer(false);
-
-    ui->view->setViewport(new QGLWidget(fmt));
-    ui->view->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-
-    qDebug() << ui->view->viewport()->pos();
-    qDebug() << ui->view->viewport()->geometry();
-
 }
 
 GameWindow::~GameWindow()
@@ -123,7 +107,7 @@ GameWindow::~GameWindow()
     if(user.getUsername() != "")
         clockWrite();
 
-    delete loading;
+    //delete loading;
     delete timer_message;
 
     delete ui;
@@ -166,6 +150,7 @@ void GameWindow::failedGame_1()
     ui->time_1->setText("0:00");
     ui->time_1->setStyleSheet("QLabel { color : red; }");
     startLoading();
+    ui->stackedWidget->setFocus();
 }
 
 void GameWindow::mousePressEvent(QMouseEvent *event)
@@ -173,10 +158,10 @@ void GameWindow::mousePressEvent(QMouseEvent *event)
     if (event->button() != Qt::LeftButton)
         return;
 
-    if (ui->stackedWidget->currentIndex() == 0)
+    if (ui->stackedWidget->currentIndex() != 1)
         return;
 
-    switch (clockFacade->press(id_selected)) {
+    switch (clockFacade->press(id_selected, event->pos())) {
     case 0:
         emit clicked_1();
         break;
@@ -311,18 +296,21 @@ void GameWindow::endLoading()
              break;
          case 1:
              clockFacade->hide();
-             scene = new LevelScene(ui->view, ui->timerLabel, ui->keyLabel, clockFacade->clock_timers[0], &user);
+             view = new LevelView(ui->gameLevel);
+             scene = new LevelScene(view, ui->timerLabel, clockFacade->clock_timers[0], &user);
              connect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
              connect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
              ui->stackedWidget->setCurrentIndex(2);
-             ui->view->setScene(scene);
-             ui->view->setFocus();
+             view->setScene(scene);
+             view->setFocus();
              scene->getTimerAnimation()->start();
+             scene->addWidget(loading);
              break;
          case 2:
              clockFacade->show();
              ui->stackedWidget->setCurrentIndex(1);
              delete scene;
+             delete view;
              break;
          }
     connect(workerThread, &QThread::started, this, &GameWindow::processLoading);
@@ -380,8 +368,8 @@ void GameWindow::processLoading()
      QCoreApplication::processEvents();
    }
    workerThread->quit();
-   workerThread->deleteLater();
    animationEnd->deleteLater();
+   //workerThread->deleteLater();
 }
 
 void GameWindow::on_pushButton_clicked()

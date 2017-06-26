@@ -23,7 +23,7 @@ public:
     void hide();
     void show();
     void draw();
-    int press(int &id_selected);
+    int press(int &id_selected, QPoint mousePos);
 
     void fail(int index);
     void succeed(int index);

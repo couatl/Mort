@@ -27,6 +27,8 @@ Player::Player(int _x, int _y, QGraphicsObject *parent) : QGraphicsObject(parent
     jumpAnimation->setEndValue(0);
     jumpAnimation->setDuration(900);
     jumpAnimation->setEasingCurve(QEasingCurve::OutInSine);
+
+    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
 }
 
 void Player::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
@@ -56,6 +58,7 @@ void Player::setJumpFactor(const qreal& pos)
     if (pos == jumpFact)
            return;
     jumpFact = pos;
+
     emit jumpFactorChanged(jumpFact);
 }
 
@@ -77,13 +80,14 @@ void Player::walk(bool right)
     }
     if (x < 0)
         x = 0;
-    if (x > 1984)
-        x = 1984;
 }
 
 void Player::jump() {
     if (QAbstractAnimation::Stopped == jumpAnimation->state()) {
-        //state = jumping;
+        state = jumping;
+        qDebug() << "in";
+
+
         jumpAnimation->start();
         emit signalJump();
     }

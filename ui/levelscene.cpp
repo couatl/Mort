@@ -1,5 +1,4 @@
 #include "levelscene.h"
-#include "button.h"
 
 #include <QPalette>
 #include <QThread>
@@ -7,11 +6,11 @@
 #include <QFont>
 #include <QPushButton>
 #include <QCoreApplication>
+#include <QGraphicsSimpleTextItem>
 
 #include <QDebug>
-#include <QTime>
 
-LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, QLabel* _keyLabel, Timer *_timer, User *_user, QWidget *parent):
+LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer, User *_user, QWidget *parent):
     QGraphicsScene(parent),
     timer(_timer),
     user(_user),
@@ -20,7 +19,6 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, QLabel* _keyLa
     firstInput(false),
     view(_view),
     timerLabel(_timerLabel),
-    keyLabel(_keyLabel),
     yAnimation(0),
     upAnimation(true),
     timerAnimation(new Timer(nullptr, 100, 25, false)),
@@ -40,20 +38,39 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, QLabel* _keyLa
     goal->hide();
     house = new House(goal->boundingRect().x(), goal->boundingRect().bottom() - 240);
     this->addItem(house);
-    //this->addItem(goal);
+    this->addItem(goal);
 
     player = level->getPlayer();
     this->addItem(player);
 
+    int id = QFontDatabase::addApplicationFont(":/rsc/resources/ITCBLKAD.TTF");
+    QString font_name = QFontDatabase::applicationFontFamilies(id).at(0);
+    QFont font = QFont(font_name, 52, QFont::Normal);
+
     // Загрузка таймера отсчета
-    timerLabel->setText(timer->getDecoratedTime());
+    timerText = new QGraphicsSimpleTextItem(timerLabel->text());
+    timerText->setGraphicsEffect(timerLabel->graphicsEffect());
+    timerText->setPos(410, 20);
+    timerText->setFont(font);
+    this->addItem(timerText);
+
+    timerText->setText(timer->getDecoratedTime());
     if (timer->getTime() <= 10)
-        timerLabel->setStyleSheet("QLabel { color : red; }");
+        timerText->setBrush(QBrush(Qt::red));
+    else
+        timerText->setBrush(QBrush(Qt::white));
 
     QPixmap _key(":/rsc/images/key.png");
-    _key = _key.scaled(61, 46, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+    _key = _key.scaled(50, 38, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+    keyLabel = new QGraphicsPixmapItem();
     keyLabel->setPixmap(_key);
+    keyLabel->setPos(425 + timerText->boundingRect().width(), 40);
+    this->addItem(keyLabel);
     keyLabel->hide();
+
+    key = level->getKey();
+    this->addItem(key);
+
 
     // коннектим сигналы-слоты
     connect(timer, &Timer::timeout, this, &LevelScene::timeUpdate);
@@ -73,6 +90,18 @@ LevelScene::~LevelScene() {
 void LevelScene::PlayerAnimation()
 {
     QCoreApplication::processEvents();
+
+    qDebug() << player->getState();
+
+    //Следовать за пользователем
+    if (player->isEnabled()) {
+        view->ensureVisible(player, 400);
+    }
+
+    timerText->setPos(view->mapToScene(view->rect()).boundingRect().x()+410, timerText->pos().y());
+    if (hasKey)
+        keyLabel->setPos(view->mapToScene(view->rect()).boundingRect().x() + 425 + timerText->boundingRect().width(), keyLabel->pos().y());
+
     // Провалился за экран
     if (player->pos().y() >= (540 - 132) / 2)
     {
@@ -82,10 +111,6 @@ void LevelScene::PlayerAnimation()
     //  falling
     int playerState = player->getState();
     int isFall = player->getState() == Player::falling ? 3 : 0;
-
-    //
-    if (player->isEnabled())
-        view->ensureVisible(player, 400);
 
     //  flying animation
     if (playerState == Player::normal)
@@ -121,7 +146,14 @@ void LevelScene::PlayerAnimation()
         if (intersect(player, player->collidingItems()))
            player->setState(Player::normal);
     }
-    else if (player->collidesWithItem(goal)) {
+    else if (player->collidesWithItem(key) && !hasKey)
+    {
+        hasKey = true;
+        this->removeItem(key);
+        keyLabel->show();
+        goal->show();
+    }
+    else if (player->collidesWithItem(goal) && hasKey) {
         isWin = true;
         displayGameOverWindow("Good job, oh sweet child.");
     }
@@ -135,7 +167,6 @@ void LevelScene::timerStart()
 
 void LevelScene::finishLevel()
 {
-    qDebug() << "check";
     if (isWin)
     {
         emit levelComplete();
@@ -148,14 +179,32 @@ void LevelScene::finishLevel()
 
 void LevelScene::playerJump(qreal factor)
 {
-    qreal jumpHeight = 70;
-    //
-    if (player->pos().x() > 50)
-        view->centerOn(player);
+    if(player->getState() != Player::jumping) {
+        emit player->jumpAnimation->finished();
+        player->jumpAnimation->stop();
+        return;
+    }
+    qreal jumpHeight = 90;
+
+    //Следовать за пользователем
+    if (player->isEnabled()) {
+        view->ensureVisible(player, 400);
+    }
+
     const qreal y = (groundLevel - player->boundingRect().height() - factor * jumpHeight) / 2;
     player->setPos(player->getX() == player->pos().x() ?
                        player->pos().x() :
                        player->pos().x() + 2 * player->getDirection(), y);
+
+    if (player->getState() != Player::normal)
+    {
+        if (intersect(player, player->collidingItems()))
+           player->setState(Player::normal);
+    }
+
+    timerText->setPos(view->mapToScene(view->rect()).boundingRect().x()+410, timerText->pos().y());
+    if (hasKey)
+        keyLabel->setPos(view->mapToScene(view->rect()).boundingRect().x()+425 + timerText->boundingRect().width(), keyLabel->pos().y());
 }
 
 void LevelScene::keyPressEvent(QKeyEvent *event)
@@ -166,8 +215,6 @@ void LevelScene::keyPressEvent(QKeyEvent *event)
         firstInput = true;
         emit didFirstInput();
     }
-
-    qDebug() << timerAnimation->isActive();
 
     if(player->isEnabled())
     {
@@ -189,8 +236,10 @@ void LevelScene::keyPressEvent(QKeyEvent *event)
             if (event->isAutoRepeat())
                 break;
             if(player->getState() == Player::falling || player->getState() == Player::jumping
-                    || player->jumpAnimation->state() != QPropertyAnimation::Stopped)
+                    || player->jumpAnimation->state() != QPropertyAnimation::Stopped) {
+                qDebug() << "exited";
                 break;
+            }
             groundLevel = player->boundingRect().y() * 2 + player->boundingRect().height();
             player->jump();
             break;
@@ -198,14 +247,11 @@ void LevelScene::keyPressEvent(QKeyEvent *event)
     }
     // Отключает скролл клавишами после смерти персонажа
     else {
-        switch (event->key()) {
-        case Qt::Key_Right:
-        case Qt::Key_D:
-        case Qt::Key_Left:
-        case Qt::Key_A:
-        case Qt::Key_Space:
-        case Qt::Key_Up:
-            break;
+        if(event->isAutoRepeat()) {
+            return;
+        }
+        else {
+            finishLevel();
         }
     }
 }
@@ -215,8 +261,8 @@ void LevelScene::displayGameOverWindow(QString textToDisplay)
     // Отключаем все объекты уровня
     disconnect(timer, &Timer::timeout, this, &LevelScene::timeUpdate);
     disconnect(timerAnimation, &Timer::timeout, this, &LevelScene::PlayerAnimation);
-    for (auto item : this->items()){
-        item->setEnabled(false);
+    for (size_t i = 0, n = this->items().size(); i < n; i++){
+        this->items()[i]->setEnabled(false);
     }
     this->removeItem(player);
     //this->removeItem(goal);
@@ -229,6 +275,8 @@ void LevelScene::displayGameOverWindow(QString textToDisplay)
     panel->setBrush(brush);
     panel->setOpacity(0.65);
     this->addItem(panel);
+
+    view->centerOn(400,0);
 
     // Отрисовка картинки письма
     QLabel* label = new QLabel();
@@ -246,24 +294,25 @@ void LevelScene::displayGameOverWindow(QString textToDisplay)
     QFont font = QFont(font_name, 43, QFont::Normal);
 
     // Заключительное сообщение
-    QGraphicsTextItem* overText = new QGraphicsTextItem(textToDisplay);
+    QGraphicsSimpleTextItem* overText = new QGraphicsSimpleTextItem(textToDisplay);
     overText->setPos(300,175);
     overText->setFont(font);
     this->addItem(overText);
 
-    Button* MainMenu = new Button(QString("ok"), font);
-    MainMenu->setPos(422,410);
-    this->addItem(MainMenu);
-    connect(MainMenu, &Button::clicked, this, &LevelScene::finishLevel);
-
-    view->centerOn(400,0);
+    QGraphicsSimpleTextItem* logText = new QGraphicsSimpleTextItem("Press any button to continue");
+    logText->setPos(390,410);
+    logText->setBrush(QBrush(Qt::white));
+    QFont font_2 = QFont("Arial", 16, QFont::Cursive);
+    font_2.setItalic(true);
+    logText->setFont(font_2);
+    this->addItem(logText);
 }
 
 void LevelScene::timeUpdate()
 {
     if (timer->getTime() == 0) {
-        timerLabel->setStyleSheet("QLabel { color : red; }");
-        timerLabel->setText("0:00");
+        timerText->setBrush(QBrush(Qt::red));
+        timerText->setText("0:00");
         timer->stop();
         displayGameOverWindow("I am disappointed");
         return;
@@ -271,26 +320,27 @@ void LevelScene::timeUpdate()
 
     timer->decrease();
     if(timer->getTime() > 0) {
-        timerLabel->setText(timer->getDecoratedTime());
+        timerText->setText(timer->getDecoratedTime());
         if (timer->getTime() <= 10)
-            timerLabel->setStyleSheet("QLabel { color : red; }");
+            timerText->setBrush(QBrush(Qt::red));
         return;
     }
     else if(timer->getTime() == 0)
     {
-        timerLabel->setStyleSheet("QLabel { color : red; }");
-        timerLabel->setText("0:00");
+        timerText->setBrush(QBrush(Qt::red));
+        timerText->setText("0:00");
         timer->stop();
         displayGameOverWindow("I am disappointed");
         return;
     }
+
 }
 
 bool LevelScene::intersect(Player* player, QList<QGraphicsItem*> list)
 {
     for (auto i: list)
     {
-        if (player->boundingRect().y() * 2 + player->boundingRect().height() - i->boundingRect().top() <= 4)
+        if (player->boundingRect().y() * 2 + player->boundingRect().height() - i->boundingRect().top() <= 8)
         {
             return true;
         }

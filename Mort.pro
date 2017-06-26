@@ -39,9 +39,10 @@ SOURCES += \
     ui/level.cpp \
     game_objects/abstractblock.cpp \
     game_objects/clockfacade.cpp \
-    ui/button.cpp \
     game_objects/house.cpp \
-    game_objects/timerthread.cpp
+    game_objects/timerthread.cpp \
+    ui/levelview.cpp \
+    game_objects/key.cpp
 
 HEADERS += \
         ui/gamewindow.h \
@@ -59,9 +60,10 @@ HEADERS += \
     game_objects/blockwaiter.h \
     game_objects/brokenblockbuilder.h \
     game_objects/clockfacade.h \
-    ui/button.h \
     game_objects/house.h \
-    game_objects/timerthread.h
+    game_objects/timerthread.h \
+    ui/levelview.h \
+    game_objects/key.h
 
 FORMS += \
         ui/gamewindow.ui \

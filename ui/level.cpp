@@ -117,9 +117,10 @@ void Level::parseElement()
                 }
                 if (type == "Player")
                     player = new Player(x,y);
-                if (type == "Goal") {
+                if (type == "Goal")
                     goal = new Goal(x, y);
-                }
+                if (type == "Key")
+                    key = new Key(x, y);
             }
         }
         xmlReader.readNext();

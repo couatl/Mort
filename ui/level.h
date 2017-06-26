@@ -5,6 +5,7 @@
 
 #include "../game_objects/player.h"
 #include "../game_objects/goal.h"
+#include "../game_objects/key.h"
 
 #include "../game_objects/blockbuilder.h"
 #include "../game_objects/blockwaiter.h"
@@ -25,6 +26,7 @@ public:
 
     Player* getPlayer() { return player; }
     Goal* getGoal() { return goal; }
+    Key* getKey() { return key; }
 
 private:
     QXmlStreamReader xmlReader;
@@ -39,6 +41,7 @@ private:
     QVector<AbstractBlock*> blocks;
     Player* player;
     Goal* goal;
+    Key* key;
 
     int countBlocks, countBrokenBlocks;
 
