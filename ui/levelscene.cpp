@@ -10,8 +10,9 @@
 
 #include <QDebug>
 
-LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer, User *_user, QWidget *parent):
+LevelScene::LevelScene(int _idLevel, QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer, User *_user, QMediaPlayer* MediaPlayer, QWidget *parent):
     QGraphicsScene(parent),
+    idLevel(_idLevel),
     timer(_timer),
     user(_user),
     isWin(false),
@@ -22,8 +23,9 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     yAnimation(0),
     upAnimation(true),
     timerAnimation(new Timer(nullptr, 100, 25, false)),
-    countMoved(10)
-{
+    countMoved(10),
+    keyPlayer(MediaPlayer)
+{ 
     // ширина равна 86 (ширина 1 блока) * 24
     this->setSceneRect(0, 0, 2064, 540);
     QPixmap _background(":/rsc/images/bg.png");
@@ -32,7 +34,7 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
       
     // Загрузка уровня
     level = new Level(this);
-    level->loadLevel(1);
+    level->loadLevel(idLevel+1);
 
     goal = level->getGoal();
     goal->hide();
@@ -71,9 +73,7 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     key = level->getKey();
     this->addItem(key);
 
-    keyPlayer = new QMediaPlayer();
     keyPlayer->setMedia(QUrl("qrc:/music/resources/3.mp3"));
-
 
     // коннектим сигналы-слоты
     connect(timer, &Timer::timeout, this, &LevelScene::timeUpdate);
@@ -88,7 +88,6 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
 LevelScene::~LevelScene() {
     delete level;
     delete timerAnimation;
-    delete keyPlayer;
 }
 
 void LevelScene::PlayerAnimation()
@@ -172,11 +171,11 @@ void LevelScene::finishLevel()
 {
     if (isWin)
     {
-        emit levelComplete();
+        emit levelComplete(idLevel);
     }
     else
     {
-        emit levelFail();
+        emit levelFail(idLevel);
     }
 }
 
@@ -345,7 +344,7 @@ bool LevelScene::intersect(Player* player, QList<QGraphicsItem*> list)
 {
     for (auto i: list)
     {
-        qDebug() << player->boundingRect().y() * 2 + player->boundingRect().height() << i->boundingRect().top();
+//        qDebug() << player->boundingRect().y() * 2 + player->boundingRect().height() << i->boundingRect().top();
         if (player->boundingRect().y() * 2 + player->boundingRect().height() - i->boundingRect().top() <= 4)
         {
             return true;

@@ -20,15 +20,15 @@ class LevelScene : public QGraphicsScene
 {
     Q_OBJECT
 public:
-    explicit LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer* _timer, User* _user, QWidget *parent = 0);
+    explicit LevelScene(int _idLevel, QGraphicsView* _view, QLabel* _timerLabel, Timer* _timer, User* _user, QMediaPlayer* MediaPlayer, QWidget *parent = 0);
     ~LevelScene();
 
     Timer* getTimerAnimation()
     { return timerAnimation; }
 
 signals:
-    void levelComplete();
-    void levelFail();
+    void levelComplete(int);
+    void levelFail(int);
     void didFirstInput();
 
 public slots:
@@ -42,6 +42,7 @@ protected:
     void keyPressEvent(QKeyEvent *event);
 
 private:
+    int idLevel;
     //  Для отрисовки окна окончания уровня
     void displayGameOverWindow(QString textToDisplay);
 

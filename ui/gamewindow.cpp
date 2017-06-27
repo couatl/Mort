@@ -57,7 +57,7 @@ GameWindow::GameWindow(QWidget *parent) :
     ui->background->lower();
 
     connect(ui->actionAbout, &QAction::triggered, this, &GameWindow::about);
-    connect(this, &GameWindow::clicked_1, this, &GameWindow::launchGame_1);
+    connect(this, SIGNAL(clicked(int)), this, SLOT(launchGame(int)));
 
     drawBackground();
     drawLoading();
@@ -76,18 +76,21 @@ GameWindow::GameWindow(QWidget *parent) :
     palette.setColor(QPalette::WindowText, Qt::white);
     ui->timerLabel->setPalette(palette);
 
+    //Music
+    levelScenePlayer = new QMediaPlayer();
+
     QMediaPlaylist* messagePlayerPlaylist = new QMediaPlaylist();
     messagePlayerPlaylist->addMedia(QUrl("qrc:/music/resources/1.mp3"));
+    messagePlayerPlaylist->setPlaybackMode(QMediaPlaylist::Loop);
     messagePlayer = new QMediaPlayer();
     messagePlayer->setPlaylist(messagePlayerPlaylist);
     messagePlayer->setVolume(50);
 
-
     QMediaPlaylist* backgroundPlayerPlaylist = new QMediaPlaylist();
     backgroundPlayerPlaylist->addMedia(QUrl("qrc:/music/resources/2.mp3"));
+    backgroundPlayerPlaylist->setPlaybackMode(QMediaPlaylist::Loop);
     backgroundPlayer = new QMediaPlayer();
     backgroundPlayer->setPlaylist(backgroundPlayerPlaylist);
-
     backgroundPlayer->play();
 
     if (!user.exist())
@@ -112,6 +115,7 @@ GameWindow::~GameWindow()
 {
     delete messagePlayer;
     delete backgroundPlayer;
+    delete levelScenePlayer;
 
     delete ui->timerLabel->graphicsEffect();
     delete ui->score->graphicsEffect();
@@ -132,36 +136,36 @@ void GameWindow::about()
     dialog.exec();
 }
 
-void GameWindow::launchGame_1()
+void GameWindow::launchGame(int id)
 {
-    qDebug() << "launch game 1";
+    qDebug() << "launch game " << id+1;
+    idLevel = id;
 
-    clockFacade->stop(0);
-
+    clockFacade->stop(id);
     startLoading();
 }
 
-void GameWindow::completedGame_1()
+void GameWindow::completedGame(int id)
 {
-    disconnect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
-    disconnect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
+    disconnect(scene, SIGNAL(levelFail(int)), this, SLOT(failedGame(int)));
+    disconnect(scene, SIGNAL(levelComplete(int)), this, SLOT(completedGame(int)));
 
-    clockFacade->succeed(0);
-    ui->time_1->setText(clockFacade->clock_timers[0]->getDecoratedTime());
-    ui->time_1->setStyleSheet("QLabel { color : green; }");
-    user.setScore(user.getScore() + clockFacade->time(0)*10);
+    clockFacade->succeed(id);
+    times[0]->setText(clockFacade->clock_timers[id]->getDecoratedTime());
+    times[0]->setStyleSheet("QLabel { color : green; }");
+    user.setScore(user.getScore() + clockFacade->time(id)*10);
     ui->score->setText("Score: " + QString::number(user.getScore()));
     startLoading();
 }
 
-void GameWindow::failedGame_1()
+void GameWindow::failedGame(int id)
 {
-    disconnect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
-    disconnect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
+    disconnect(scene, SIGNAL(levelFail(int)), this, SLOT(failedGame(int)));
+    disconnect(scene, SIGNAL(levelComplete(int)), this, SLOT(completedGame(int)));
 
-    clockFacade->fail(0);
-    ui->time_1->setText("0:00");
-    ui->time_1->setStyleSheet("QLabel { color : red; }");
+    clockFacade->fail(id);
+    times[id]->setText("0:00");
+    times[id]->setStyleSheet("QLabel { color : red; }");
     startLoading();
     ui->stackedWidget->setFocus();
 }
@@ -174,17 +178,10 @@ void GameWindow::mousePressEvent(QMouseEvent *event)
     if (ui->stackedWidget->currentIndex() != 1)
         return;
 
-    switch (clockFacade->press(id_selected, event->pos())) {
-    case 0:
-        emit clicked_1();
-        break;
-    case 1:
-        emit clicked_2();
-        break;
-    case 2:
-        emit clicked_3();
-        break;
-    }
+    int select = clockFacade->press(id_selected, event->pos());
+    if (select>=0)
+        emit clicked(select);
+
     QMainWindow::mousePressEvent(event);
 }
 
@@ -193,8 +190,10 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
     if (ui->stackedWidget->currentIndex()!=0)
         return;
     else
-        if (event->key() == Qt::Key_Space)
+        if (event->key() == Qt::Key_Space){
             timer_message->setInterval(10);
+            ui->speedupLabel->setVisible(false);
+        }
 }
 
 void GameWindow::drawClocks()
@@ -233,9 +232,6 @@ void GameWindow::drawClocks()
 
 void GameWindow::drawLoading()
 {
-    //player2->setMedia(QUrl::fromLocalFile("/Users/ilamoskalev/Downloads/2.mp3"));
-    //player2->setVolume(50);
-    //player2->play();
     QPixmap _loading(":/rsc/images/loading.png");
     loading->setGeometry(0, 0, 960, 540);
     _loading = _loading.scaled(960, 540,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
@@ -321,14 +317,13 @@ void GameWindow::endLoading()
          case 1:
              clockFacade->hide();
              view = new LevelView(ui->gameLevel);
-             scene = new LevelScene(view, ui->timerLabel, clockFacade->clock_timers[0], &user);
-             connect(scene, &LevelScene::levelFail, this, &GameWindow::failedGame_1);
-             connect(scene, &LevelScene::levelComplete, this, &GameWindow::completedGame_1);
+             scene = new LevelScene(idLevel, view, ui->timerLabel, clockFacade->clock_timers[0], &user, levelScenePlayer);
+             connect(scene, SIGNAL(levelFail(int)), this, SLOT(failedGame(int)));
+             connect(scene, SIGNAL(levelComplete(int)), this, SLOT(completedGame(int)));
              ui->stackedWidget->setCurrentIndex(2);
              view->setScene(scene);
              view->setFocus();
              scene->getTimerAnimation()->start();
-             scene->addWidget(loading);
              break;
          case 2:
              clockFacade->show();
@@ -415,5 +410,21 @@ void GameWindow::on_pushButton_clicked()
     else {
             user.setUsername(ui->userLineEdit->text());
             startLoading();
+    }
+}
+
+void GameWindow::on_actionMute_triggered()
+{
+    if (ui->actionMute->isChecked())
+    {
+        backgroundPlayer->setMuted(true);
+        messagePlayer->setMuted(true);
+        levelScenePlayer->setMuted(true);
+    }
+    else
+    {
+        backgroundPlayer->setMuted(false);
+        messagePlayer->setMuted(false);
+        levelScenePlayer->setMuted(false);
     }
 }

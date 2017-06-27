@@ -23,11 +23,9 @@
 //  TODO: переделать под слоты/сигналы с индексом
 //  TODO: uml-диаграммы
 
-//  TODO: Ускорение приветствия
 //  TODO: кроссплатформенность
 
 //  TODO: архитектура уровня
-//  TODO: turn off music
 
 //  TODO: лейблы с подсказками
 //  TODO: информация об умершем
@@ -56,16 +54,23 @@ private slots:
     void endLoading();
     void processLoading();
 
-    void launchGame_1();
-    void completedGame_1();
-    void failedGame_1();
+    void launchGame(int id);
+    void completedGame(int id);
+    void failedGame(int id);
+
+//    void launchGame_1();
+//    void completedGame_1();
+//    void failedGame_1();
 
     void on_pushButton_clicked();
 
+    void on_actionMute_triggered();
+
 signals:
-    void clicked_1();
-    void clicked_2();
-    void clicked_3();
+    void clicked(int id);
+//    void clicked_1();
+//    void clicked_2();
+//    void clicked_3();
 
 protected:
     void mousePressEvent(QMouseEvent* event);
@@ -95,7 +100,7 @@ private:
 
     User user;
 
-    int id_selected;
+    int id_selected, idLevel;
 
     ClockFacade* clockFacade;
 
@@ -112,6 +117,7 @@ private:
 
     QMediaPlayer* messagePlayer;
     QMediaPlayer* backgroundPlayer;
+    QMediaPlayer* levelScenePlayer;
 };
 
 #endif // GAMEWINDOW_H
