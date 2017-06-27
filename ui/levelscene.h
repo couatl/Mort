@@ -6,7 +6,8 @@
 #include <QGraphicsPixmapItem>
 #include <QLabel>
 #include <QKeyEvent>
-#include <QXmlStreamReader>
+#include <QMediaPlayer>
+
 
 #include "../game_objects/timer.h"
 #include "../game_objects/user.h"
@@ -75,6 +76,9 @@ private:
 
     QGraphicsSimpleTextItem* timerText;
     QGraphicsPixmapItem* keyLabel;
+
+    QMediaPlayer* keyPlayer;
+
 };
 
 #endif // LEVELSCENE_H

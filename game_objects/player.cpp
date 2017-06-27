@@ -85,9 +85,6 @@ void Player::walk(bool right)
 void Player::jump() {
     if (QAbstractAnimation::Stopped == jumpAnimation->state()) {
         state = jumping;
-        qDebug() << "in";
-
-
         jumpAnimation->start();
         emit signalJump();
     }

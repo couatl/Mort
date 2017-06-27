@@ -1,7 +1,6 @@
 #include "gamewindow.h"
 #include "ui_gamewindow.h"
 
-#include <QMediaPlayer>
 #include <QMessageBox>
 #include <QFontDatabase>
 #include <QFont>
@@ -18,9 +17,6 @@
 #include <QDebug>
 
 QThread *workerThread;
-
-QMediaPlayer* player = new QMediaPlayer;
-QMediaPlayer* player2 = new QMediaPlayer;
 
 QGraphicsDropShadowEffect* ShadowEffect(QGraphicsDropShadowEffect* eff)
 {
@@ -80,30 +76,43 @@ GameWindow::GameWindow(QWidget *parent) :
     palette.setColor(QPalette::WindowText, Qt::white);
     ui->timerLabel->setPalette(palette);
 
+    QMediaPlaylist* messagePlayerPlaylist = new QMediaPlaylist();
+    messagePlayerPlaylist->addMedia(QUrl("qrc:/music/resources/1.mp3"));
+    messagePlayer = new QMediaPlayer();
+    messagePlayer->setPlaylist(messagePlayerPlaylist);
+    messagePlayer->setVolume(50);
+
+
+    QMediaPlaylist* backgroundPlayerPlaylist = new QMediaPlaylist();
+    backgroundPlayerPlaylist->addMedia(QUrl("qrc:/music/resources/2.mp3"));
+    backgroundPlayer = new QMediaPlayer();
+    backgroundPlayer->setPlaylist(backgroundPlayerPlaylist);
+
+    backgroundPlayer->play();
+
     if (!user.exist())
     {
-        player->setMedia(QUrl("qrc:/music/resources/1.mp3"));
-        player->setVolume(50);
-        player->play();
+        messagePlayer->play();
+        backgroundPlayer->setVolume(25);
         connect(timer_message, &Timer::timeout, this, &GameWindow::writeMessage);
         connect(ui->userLineEdit, SIGNAL(returnPressed()), ui->pushButton, SIGNAL(clicked()));
     }
     else
     {
+        backgroundPlayer->setVolume(50);
         clockRead();
         drawClocks();
         drawShelf();
         drawLoading();
-        player2->setMedia(QUrl("qrc:/music/resources/2.mp3"));
-        player2->setVolume(50);
-        player2->play();
         ui->stackedWidget->setCurrentIndex(1);
     }
-
 }
 
 GameWindow::~GameWindow()
 {
+    delete messagePlayer;
+    delete backgroundPlayer;
+
     delete ui->timerLabel->graphicsEffect();
     delete ui->score->graphicsEffect();
     delete ui->label->graphicsEffect();
@@ -179,6 +188,15 @@ void GameWindow::mousePressEvent(QMouseEvent *event)
     QMainWindow::mousePressEvent(event);
 }
 
+void GameWindow::keyPressEvent(QKeyEvent *event)
+{
+    if (ui->stackedWidget->currentIndex()!=0)
+        return;
+    else
+        if (event->key() == Qt::Key_Space)
+            timer_message->setInterval(10);
+}
+
 void GameWindow::drawClocks()
 {
     clockFacade->draw();
@@ -215,6 +233,9 @@ void GameWindow::drawClocks()
 
 void GameWindow::drawLoading()
 {
+    //player2->setMedia(QUrl::fromLocalFile("/Users/ilamoskalev/Downloads/2.mp3"));
+    //player2->setVolume(50);
+    //player2->play();
     QPixmap _loading(":/rsc/images/loading.png");
     loading->setGeometry(0, 0, 960, 540);
     _loading = _loading.scaled(960, 540,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
@@ -262,13 +283,12 @@ void GameWindow::writeMessage()  {
 
         if (ui->message->text().length() == message.length())
         {
-            player->stop();
+            messagePlayer->stop();
+            backgroundPlayer->setVolume(50);
             timer_message->stop();
             ui->userLineEdit->setVisible(true);
             ui->pushButton->setVisible(true);
-            player2->setMedia(QUrl("qrc:/music/resources/2.mp3"));
-            player2->setVolume(50);
-            player2->play();
+
         }
         else
         {

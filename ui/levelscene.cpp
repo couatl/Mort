@@ -7,7 +7,6 @@
 #include <QPushButton>
 #include <QCoreApplication>
 #include <QGraphicsSimpleTextItem>
-#include <QMediaPlayer>
 
 #include <QDebug>
 
@@ -72,6 +71,9 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
     key = level->getKey();
     this->addItem(key);
 
+    keyPlayer = new QMediaPlayer();
+    keyPlayer->setMedia(QUrl("qrc:/music/resources/3.mp3"));
+
 
     // коннектим сигналы-слоты
     connect(timer, &Timer::timeout, this, &LevelScene::timeUpdate);
@@ -86,13 +88,12 @@ LevelScene::LevelScene(QGraphicsView* _view, QLabel* _timerLabel, Timer *_timer,
 LevelScene::~LevelScene() {
     delete level;
     delete timerAnimation;
+    delete keyPlayer;
 }
 
 void LevelScene::PlayerAnimation()
 {
     QCoreApplication::processEvents();
-
-    qDebug() << player->getState();
 
     //Следовать за пользователем
     if (player->isEnabled()) {
@@ -111,7 +112,7 @@ void LevelScene::PlayerAnimation()
 
     //  falling
     int playerState = player->getState();
-    int isFall = player->getState() == Player::falling ? 3 : 0;
+    int isFall = player->getState() == Player::falling ? 2 : 0;
 
     //  flying animation
     if (playerState == Player::normal)
@@ -149,14 +150,11 @@ void LevelScene::PlayerAnimation()
     }
     else if (player->collidesWithItem(key) && !hasKey)
     {
-        QMediaPlayer* player3 = new QMediaPlayer;
-        player3->setMedia(QUrl("qrc:/music/resources/1.mp3"));
-        player3->setVolume(50);
-        player3->play();
         hasKey = true;
         this->removeItem(key);
         keyLabel->show();
         goal->show();
+        keyPlayer->play();
     }
     else if (player->collidesWithItem(goal) && hasKey) {
         isWin = true;
@@ -184,10 +182,10 @@ void LevelScene::finishLevel()
 
 void LevelScene::playerJump(qreal factor)
 {
+    //qDebug() << player->jumpAnimation->currentValue() << player->jumpAnimation->endValue() << player->jumpAnimation->state() << player->getState();
+
     if(player->getState() != Player::jumping) {
-        emit player->jumpAnimation->finished();
-        player->jumpAnimation->stop();
-        return;
+        player->jumpAnimation->setCurrentTime(900);
     }
     qreal jumpHeight = 90;
 
@@ -204,7 +202,9 @@ void LevelScene::playerJump(qreal factor)
     if (player->getState() != Player::normal)
     {
         if (intersect(player, player->collidingItems()))
-           player->setState(Player::normal);
+        {
+            player->setState(Player::normal);
+        }
     }
 
     timerText->setPos(view->mapToScene(view->rect()).boundingRect().x()+410, timerText->pos().y());
@@ -242,7 +242,7 @@ void LevelScene::keyPressEvent(QKeyEvent *event)
                 break;
             if(player->getState() == Player::falling || player->getState() == Player::jumping
                     || player->jumpAnimation->state() != QPropertyAnimation::Stopped) {
-                qDebug() << "exited";
+//                qDebug() << "exited";
                 break;
             }
             groundLevel = player->boundingRect().y() * 2 + player->boundingRect().height();
@@ -345,7 +345,8 @@ bool LevelScene::intersect(Player* player, QList<QGraphicsItem*> list)
 {
     for (auto i: list)
     {
-        if (player->boundingRect().y() * 2 + player->boundingRect().height() - i->boundingRect().top() <= 8)
+        qDebug() << player->boundingRect().y() * 2 + player->boundingRect().height() << i->boundingRect().top();
+        if (player->boundingRect().y() * 2 + player->boundingRect().height() - i->boundingRect().top() <= 4)
         {
             return true;
         }

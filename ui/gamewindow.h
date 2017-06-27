@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QVector>
 #include <QPropertyAnimation>
+#include <QMediaPlayer>
+#include <QMediaPlaylist>
 
 #include "levelscene.h"
 #include "levelview.h"
@@ -15,11 +17,22 @@
 #include "../game_objects/clockfacade.h"
 
 //  TODO: loading
-//  TODO: таймер в другом потоке
-//  TODO: jump
+//  TODO: jump 1) баг ходит после прыжка
+//  TODO:      2) плохое считывание клавиш при прыжке
+
+//  TODO: переделать под слоты/сигналы с индексом
+//  TODO: uml-диаграммы
+
+//  TODO: Ускорение приветствия
+//  TODO: кроссплатформенность
 
 //  TODO: архитектура уровня
+//  TODO: turn off music
+
 //  TODO: лейблы с подсказками
+//  TODO: информация об умершем
+//  TODO: таймер в другом потоке
+
 
 namespace Ui {
 class GameWindow;
@@ -56,6 +69,7 @@ signals:
 
 protected:
     void mousePressEvent(QMouseEvent* event);
+    void keyPressEvent(QKeyEvent *event);
 
 private:
     //  Creating clock objects and setting images
@@ -95,6 +109,9 @@ private:
 
     LevelView* view;
     LevelScene* scene;
+
+    QMediaPlayer* messagePlayer;
+    QMediaPlayer* backgroundPlayer;
 };
 
 #endif // GAMEWINDOW_H

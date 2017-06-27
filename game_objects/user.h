@@ -9,7 +9,7 @@
 #include <QDir>
 
 //const QString filepath = QDir::currentPath();
- const QString filepath = "/Users/ilamoskalev/Desktop/Mort/";
+ const QString filepath = "/Users/vova/Documents/Mort/";
 
 class User
 {
