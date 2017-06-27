@@ -17,10 +17,40 @@
         </element>
         <element>
             <type>Key</type>
-            <x>100</x>
-            <y>400</y>
+            <x>1482</x>
+            <y>165</y>
         </element>
-        <element>
+    	<element>
+    		<type>Block</type>
+    		<x>0</x>
+    		<y>453</y>
+    	</element>
+    	<element>
+    		<type>Block</type>
+    		<x>86</x>
+    		<y>453</y>
+    	</element>
+    	<element>
+    		<type>Block</type>
+    		<x>172</x>
+    		<y>453</y>
+    	</element>
+    	<element>
+    		<type>Block</type>
+    		<x>258</x>
+    		<y>453</y>
+    	</element>
+    	<element>
+    		<type>BrokenBlock</type>
+    		<x>344</x>
+    		<y>453</y>
+    	</element>
+    	<element>
+    		<type>Block</type>
+    		<x>602</x>
+    		<y>453</y>
+    	</element>
+    	<element>
     		<type>Block</type>
     		<x>688</x>
     		<y>453</y>
@@ -29,6 +59,11 @@
             <type>Block</type>
             <x>774</x>
             <y>453</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>774</x>
+            <y>367</y>
         </element>
         <element>
             <type>Block</type>
@@ -44,6 +79,31 @@
             <type>Block</type>
             <x>1032</x>
             <y>453</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>1032</x>
+            <y>281</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>1118</x>
+            <y>281</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>1204</x>
+            <y>281</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>1376</x>
+            <y>195</y>
+        </element>
+        <element>
+            <type>Block</type>
+            <x>1462</x>
+            <y>195</y>
         </element>
         <element>
             <type>Block</type>
